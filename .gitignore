@@ -1,3 +1,9 @@
+# Local previews and exports
 tmp/
 output/
+
+# Raw downloaded sources for the lexicon pipeline (see README)
+sources/
+
 node_modules/
+.DS_Store
