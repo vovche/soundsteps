@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          "src/index.html"
+        ],
+        "createdAt": "2026-09-25T22:03:47.994Z",
+        "reason": "Agent: explicit screen line heights in src/index.html are at least 1.35; static detector reports an impossible 0.18x ratio, while Chrome screenshots show normal line spacing"
+      }
+    ]
+  }
+}

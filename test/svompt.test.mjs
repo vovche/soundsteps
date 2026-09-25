@@ -17,7 +17,8 @@ const cases = [
   // "to" + verb is an infinitive, not a place
   ['I want to play football after school.', '[S I] [V want] [O to play football] [T after school]'],
   // on/at + time are T
-  ['We met on Monday at 7 o\'clock.', '[S We] [V met] [T on Monday at o\'clock]'],
+  ['We met on Monday at 7 o\'clock.', '[S We] [V met] [T on Monday at 7 o\'clock]'],
+  ['I have 3 books.', '[S I] [V have] [O 3 books]'],
   ['They live in a small house in May.', '[S They] [V live] [P in a small house] [T in May]'],
   // -ly words that are not manner adverbs
   ['The bird can fly very high.', '[S The bird] [V can fly] [O very high]'],

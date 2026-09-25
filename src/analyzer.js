@@ -306,9 +306,10 @@
     function tokenize(sentence, si) {
       const raw = sentence.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*|\d+(?:[.,]\d+)?|[^\sA-Za-z\d]/g) || [];
       return raw.map((text, wi) => {
-        const isWord = /^[A-Za-z]/.test(text);
-        const analysis = isWord ? analyzeSyllables(text) : { parts: [text], source: null };
-        return { id: `${si}-${wi}`, text, word: isWord, role: null, translation: '', syllableSource: analysis.source, syllables: analysis.parts };
+        const isNumber = /^\d/.test(text);
+        const isWord = /^[A-Za-z]/.test(text) || isNumber;
+        const analysis = isWord && !isNumber ? analyzeSyllables(text) : { parts: [text], source: null };
+        return { id: `${si}-${wi}`, text, word: isWord, number: isNumber, role: null, translation: '', syllableSource: analysis.source, syllables: analysis.parts };
       });
     }
 
