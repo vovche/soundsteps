@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 /** Fetch compact, source-backed card data for the combined school lexicon from English Wiktionary. */
 import fs from 'node:fs';
+import path from 'node:path';
+import { requireInputs } from './lib/inputs.mjs';
 
 const [ngslPath, outputPath] = process.argv.slice(2);
 if (!ngslPath || !outputPath) throw new Error('Usage: node fetch-wiktionary-cards.mjs NGSL.csv output.json');
+requireInputs({ 'word list': ngslPath });
+fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
 const lines = fs.readFileSync(ngslPath, 'utf8').replace(/^\uFEFF/, '').trim().split(/\r?\n/);
 const headers = lines[0].split(',').map(value => value.trim().toLowerCase());

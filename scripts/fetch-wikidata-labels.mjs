@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 /** Fetch source-backed Ukrainian labels via exact English Wikipedia sitelinks in Wikidata. */
 import fs from 'node:fs';
+import path from 'node:path';
+import { requireInputs } from './lib/inputs.mjs';
 
 const [wordListPath, outputPath] = process.argv.slice(2);
 if (!wordListPath || !outputPath) throw new Error('Usage: node fetch-wikidata-labels.mjs words.csv output.tsv');
+requireInputs({ 'word list': wordListPath });
+fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 const lines = fs.readFileSync(wordListPath, 'utf8').replace(/^\uFEFF/, '').trim().split(/\r?\n/);
 const words = lines.slice(1).map(line => line.split(',')[0].trim().toLowerCase()).filter(word => /^[a-z]+$/.test(word));
 const chunks = [];

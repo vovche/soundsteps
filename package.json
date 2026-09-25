@@ -10,6 +10,7 @@
     "build": "node scripts/build-html.mjs",
     "test": "node --test \"test/*.test.mjs\"",
     "wordlist": "node scripts/build-school-wordlist.mjs sources/NGSL-GR.csv sources/NDL.csv sources/NAWL.txt sources/school-wordlist.csv",
+    "wordlist:from-data": "node scripts/build-wordlist-from-data.mjs sources/school-wordlist.csv",
     "fetch:wiktionary": "node scripts/fetch-wiktionary-cards.mjs sources/school-wordlist.csv sources/wiktionary-cards.json",
     "fetch:wikidata": "node scripts/fetch-wikidata-labels.mjs sources/school-wordlist.csv sources/wikidata-uk.tsv",
     "lexicon": "node scripts/build-phonetic-lexicon.mjs sources/school-wordlist.csv sources/cmudict-index.js sources/syllables.txt sources/hyph_en_US.dic data",

@@ -2,12 +2,14 @@
 /** Merge Wiktionary cards, prior verified translations, manual and CC0 labels into data/dictionary-cards.json. */
 import fs from 'node:fs';
 import { readJSON, writeJSONLines } from './lib/json-data.mjs';
+import { requireInputs } from './lib/inputs.mjs';
 import { cleanTranslations } from './lib/translations.mjs';
 import { MANUAL_EXTRA } from './lib/manual-translations-extra.mjs';
 
 const [cardsPath, wikidataPath, outputPath = 'data/dictionary-cards.json'] = process.argv.slice(2);
 if (!cardsPath || !wikidataPath) throw new Error('Usage: node build-dictionary-cards.mjs cards.json uk-en_wiki.tsv [data/dictionary-cards.json]');
 
+requireInputs({ 'Wiktionary cards': cardsPath, 'Wikidata labels': wikidataPath });
 const cards = JSON.parse(fs.readFileSync(cardsPath, 'utf8'));
 // Translations already in the data file were reviewed earlier; keep them as a source.
 const previousCards = readJSON(outputPath, {});

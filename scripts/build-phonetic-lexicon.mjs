@@ -13,11 +13,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { writeJSONLines } from './lib/json-data.mjs';
+import { requireInputs } from './lib/inputs.mjs';
 
 const [ngslPath, cmuPath, writtenPath, hyphenPath, dataDir = 'data'] = process.argv.slice(2);
 if (![ngslPath, cmuPath, writtenPath, hyphenPath].every(Boolean)) {
   throw new Error('Expected paths: NGSL.csv cmudict-index.js syllables.txt hyph_en_US.dic [data-dir]');
 }
+requireInputs({ 'word list': ngslPath, CMUdict: cmuPath, 'written syllables': writtenPath, 'hyphenation patterns': hyphenPath });
 
 const ngslLines = fs.readFileSync(ngslPath, 'utf8').replace(/^\uFEFF/, '').trim().split(/\r?\n/);
 const headers = ngslLines[0].split(',').map(value => value.trim().toLowerCase());

@@ -48,7 +48,7 @@ npm test
 
 ## Перебудова словника
 
-Потрібен Node.js 22+. Вхідні файли покладіть у `sources/`:
+Потрібен Node.js 22+. Вхідні файли покладіть у `sources/`. Для оновлення лише карток з Wiktionary і Wikidata досить `npm run wordlist:from-data`, `fetch:wiktionary`, `fetch:wikidata`, `cards` і `build`: інші файли знадобляться тільки для `npm run lexicon`.
 
 | Файл | Джерело |
 | --- | --- |
@@ -62,7 +62,9 @@ npm test
 Потім виконайте команди по черзі:
 
 ```bash
-npm run wordlist          # sources/school-wordlist.csv
+npm run wordlist          # sources/school-wordlist.csv з NGSL-GR + NDL + NAWL
+# або, якщо оригінальних списків немає, той самий список слів з поточних даних:
+npm run wordlist:from-data
 npm run fetch:wiktionary  # sources/wiktionary-cards.json (English Wiktionary API, кілька хвилин)
 npm run fetch:wikidata    # sources/wikidata-uk.tsv (Wikidata API)
 npm run lexicon           # склади, наголоси, IPA → data/phonetic-lexicon.json, data/pronunciation.json
