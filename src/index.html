@@ -135,7 +135,15 @@
     }
     .source-note { margin: 7px 2px 0; color: var(--muted); font-size: .66rem; line-height: 1.35; }
 
-    .sheet { min-height: 780px; overflow: hidden; }
+    .sheet { min-height: 780px; overflow: hidden; display: flex; flex-direction: column; }
+    .sheet > .pages { flex: 1; }
+    .sheet-footer {
+      display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 18px;
+      padding: 12px 26px 14px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: .72rem; line-height: 1.45;
+    }
+    .sheet-footer strong { color: var(--ink); font-weight: 750; letter-spacing: -.01em; }
+    body.dark-mode .sheet-footer { border-color: var(--line); }
     .sheet-top {
       padding: 21px 26px 17px; border-bottom: 1px solid var(--line);
       display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
@@ -331,7 +339,7 @@
       body:not(.student-mode) .header-actions #printBtn { display: none; }
       body:not(.student-mode) .header-actions #themeBtn { display: none; }
       .mode-button { min-width: 96px; padding-inline: 10px !important; font-size: .78rem; }
-      .sheet-top, .legend, .pages { padding-left: 16px; padding-right: 16px; }
+      .sheet-top, .legend, .pages, .sheet-footer { padding-left: 16px; padding-right: 16px; }
       .compact-grid { grid-template-columns: 1fr; }
       .legend { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
       .legend::-webkit-scrollbar { display: none; }
@@ -351,6 +359,9 @@
       .sheet-title { font-size: 16pt; }
       .sheet-subtitle { font-size: 8.5pt; color: #555; }
       .pages { padding: 7mm 0 0; }
+      .sheet { display: block; }
+      .sheet-footer { padding: 3mm 0 0; margin-top: 4mm; border-top: 1px solid #aaa; color: #555; font-size: 7pt; break-inside: avoid; }
+      .sheet-footer strong { color: #000; }
       .sentence { padding: 5.5mm 4.5mm 4mm; margin-bottom: 5mm; border-color: #aaa; border-radius: 3mm; }
       .sentence-no { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .word { font-size: 13.5pt; }
@@ -468,6 +479,10 @@
         </div>
         <div class="legend" id="legend"></div>
         <div class="pages" id="output"></div>
+        <footer class="sheet-footer">
+          <span><strong>SoundSteps</strong> · розробка — Лишенко В.М.</span>
+          <span>Дані: NGSL, English Wiktionary (CC BY-SA 4.0), CMUdict, Wikidata (CC0).</span>
+        </footer>
       </section>
     </main>
   </div>
