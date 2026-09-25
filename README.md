@@ -38,6 +38,10 @@ npm run build   # src/index.html + data/*.json + vendor/*.js → index.html
 | `scripts/lib/` | Спільні модулі конвеєра (очищення перекладів, ручні переклади) |
 | `sources/` | Завантажені вхідні файли конвеєра (не в git, див. нижче) |
 
+## Публікація
+
+Сайт публікується на GitHub Pages workflow-файлом `.github/workflows/pages.yml`. На кожен push у `main` він запускає тести, збирає `index.html` і розгортає його. Джерелом у налаштуваннях репозиторію (Settings → Pages → Source) має бути **GitHub Actions**.
+
 ## Тести
 
 ```bash
