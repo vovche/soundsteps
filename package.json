@@ -4,10 +4,11 @@
   "private": true,
   "description": "Offline worksheet editor for English reading practice: coloured syllables, SVOMPT sentence roles and Ukrainian dictionary cards.",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "build": "node scripts/build-html.mjs",
+    "test": "node --test \"test/*.test.mjs\"",
     "wordlist": "node scripts/build-school-wordlist.mjs sources/NGSL-GR.csv sources/NDL.csv sources/NAWL.txt sources/school-wordlist.csv",
     "fetch:wiktionary": "node scripts/fetch-wiktionary-cards.mjs sources/school-wordlist.csv sources/wiktionary-cards.json",
     "fetch:wikidata": "node scripts/fetch-wikidata-labels.mjs sources/school-wordlist.csv sources/wikidata-uk.tsv",
