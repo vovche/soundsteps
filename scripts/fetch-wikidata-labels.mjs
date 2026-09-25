@@ -36,7 +36,8 @@ async function worker() {
     const data = await fetchChunk(chunks[index]);
     for (const entity of Object.values(data.entities || {})) {
       const enTitle = entity.sitelinks?.enwiki?.title?.toLowerCase();
-      const uk = entity.labels?.uk?.value || entity.sitelinks?.ukwiki?.title;
+      // Only real labels: ukwiki article titles are capitalised topic names, not translations.
+      const uk = entity.labels?.uk?.value;
       if (enTitle && uk) labels.set(enTitle, uk.replace(/\s*\(значення\)\s*$/, ''));
     }
     finished++;

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /** Merge Wiktionary cards, prior verified translations, CC0 labels and ESL fallbacks into index.html. */
 import fs from 'node:fs';
+import { cleanTranslations } from './lib/translations.mjs';
+import { MANUAL_EXTRA } from './lib/manual-translations-extra.mjs';
 
 const [cardsPath, wikidataPath, htmlPath] = process.argv.slice(2);
 if (!cardsPath || !wikidataPath || !htmlPath) throw new Error('Usage: node build-dictionary-cards.mjs cards.json uk-en_wiki.txt index.html');
@@ -28,17 +30,21 @@ Object.assign(MANUAL, {
   cheer:'радіти; підбадьорювати; вигук підтримки',gasp:'задихатися; хапати ротом повітря',references:'посилання; рекомендації',accurately:'точно; достовірно',aluminum:'алюміній',actively:'активно',amino:'аміно-; амінний',allocate:'розподіляти; виділяти',affirm:'підтверджувати; стверджувати',adaptive:'адаптивний; пристосувальний',arbitrary:'довільний; свавільний',behavioral:'поведінковий',broadly:'широко; загалом',confound:'спантеличувати; змішувати',compensate:'компенсувати; відшкодовувати',comply:'дотримуватися; виконувати',commonly:'зазвичай; поширено',congruent:'конгруентний; відповідний',conduction:'провідність; проведення',correctly:'правильно',constrain:'обмежувати; стримувати',critically:'критично; вирішально',depict:'зображати; описувати',dioxide:'діоксид',degrade:'погіршувати; принижувати; розкладати',dimensional:'вимірний; просторовий',differentiate:'розрізняти; диференціювати',descendent:'нащадок; низхідний',embed:'вбудовувати; вкладати',economically:'економічно; ощадливо',enormously:'надзвичайно; величезною мірою',ex:'колишній; колишня',fetal:'плодовий; фетальний',formally:'формально; офіційно',fundamentally:'фундаментально; по суті',historically:'історично',genetically:'генетично',generalize:'узагальнювати',immune:'імунний; несприйнятливий',importantly:'важливо; що важливо',infectious:'інфекційний; заразний',infect:'заражати',inhibition:'гальмування; пригнічення',inject:'вводити; робити ін’єкцію',incredibly:'неймовірно',kilometer:'кілометр',intensive:'інтенсивний',invert:'обертати; інвертувати',innate:'вроджений',irrelevant:'недоречний; неважливий',likelihood:'імовірність',interestingly:'цікаво; що цікаво',locally:'місцево; локально',liter:'літр',maximize:'максимізувати; збільшувати до максимуму',machinery:'машинне обладнання; механізми',millimeter:'міліметр',migrate:'мігрувати; переміщуватися',neural:'нейронний; нервовий',minus:'мінус; за вирахуванням',optimum:'оптимум; найкращий',optical:'оптичний',oxidize:'окиснювати',notation:'позначення; нотація',nonlinear:'нелінійний',onwards:'далі; починаючи з',portray:'зображати; змальовувати',partially:'частково',phonological:'фонологічний',phenomenal:'феноменальний; надзвичайний',postgraduate:'післядипломний; магістрант; аспірант',physically:'фізично',portrayal:'зображення; змалювання',purely:'суто; лише',rainfall:'кількість опадів; дощові опади',readily:'охоче; легко',reproduce:'відтворювати; розмножуватися',reinforce:'зміцнювати; підкріплювати',randomize:'рандомізувати; перемішувати випадково',randomly:'випадково',secrete:'виділяти; приховувати',rotate:'обертати',scripture:'Святе Письмо; священний текст',socialize:'спілкуватися; соціалізувати',strictly:'суворо; строго',socially:'соціально; у товаристві',standardize:'стандартизувати',technically:'технічно; формально',sufficiently:'достатньо',sustainable:'сталий; життєздатний',terribly:'жахливо; дуже',supposedly:'нібито',unstable:'нестабільний',transmit:'передавати; транслювати',tropical:'тропічний',unintelligible:'незрозумілий; нерозбірливий',undergraduate:'студент бакалаврату; бакалаврський',unify:'об’єднувати; уніфікувати',whereby:'завдяки чому; за яким',utilize:'використовувати',whoever:'хто б не; будь-хто, хто',whichever:'який би не; будь-який із'
 });
 
+Object.assign(MANUAL, MANUAL_EXTRA);
+
 const compact = {};
 const missingTranslations = [];
 for (const [word, source] of Object.entries(cards)) {
   const card = { ...source };
-  const translations = [
+  let translations = cleanTranslations([
     ...(card.t || []),
     ...(previousCards[word]?.t || []),
-    ...(MANUAL[word] || '').split(';'),
-    ...(wikidata.get(word) || '').split(';')
-  ].map(value => value.trim().replace(/\[\[|\]\]/g, '')).filter(Boolean);
-  card.t = [...new Set(translations)].slice(0, 8);
+    ...(MANUAL[word] || '').split(';')
+  ]);
+  // Wikidata labels come from encyclopedia article titles and often name a different sense
+  // ("fly" → "Двокрилі"), so they are only a last resort.
+  if (!translations.length) translations = cleanTranslations((wikidata.get(word) || '').split(';'));
+  card.t = translations;
   if (!card.t?.length) { missingTranslations.push(word); card.t = [word]; }
   if (card.o?.[2]) card.o[2] = card.o[2].replace(/[\[\]{}]/g, '').split(/[,/]/)[0].trim();
   if (card.et) card.et = card.et.map(item => item.map(value => typeof value === 'string' ? value.replace(/[\[\]{}]/g, '').trim() : value));

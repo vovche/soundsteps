@@ -87,7 +87,7 @@ function parseCard(source) {
 
   const posMap = { Noun:'n', Verb:'v', Adjective:'adj', Adverb:'adv', Pronoun:'pron', Preposition:'prep', Conjunction:'conj', Determiner:'det', Article:'art', Interjection:'int', Numeral:'num', Particle:'part' };
   const parts = [];
-  for (const match of english.matchAll(/^===(Noun|Verb|Adjective|Adverb|Pronoun|Preposition|Conjunction|Determiner|Article|Interjection|Numeral|Particle)===\s*$/gm)) {
+  for (const match of english.matchAll(/^={3,5}(Noun|Verb|Adjective|Adverb|Pronoun|Preposition|Conjunction|Determiner|Article|Interjection|Numeral|Particle)={3,5}\s*$/gm)) {
     const value = posMap[match[1]];
     if (!parts.includes(value)) parts.push(value);
   }

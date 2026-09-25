@@ -28,10 +28,12 @@ if (words.length < 3000 || new Set(words).size !== words.length) {
 const cmuSource = fs.readFileSync(cmuPath, 'utf8');
 const declaration = cmuSource.indexOf('export const dictionary =');
 const objectStart = cmuSource.indexOf('{', declaration);
-const objectEnd = cmuSource.lastIndexOf('\n}') + 2;
-if (declaration < 0 || objectStart < 0 || objectEnd < 2) throw new Error('Unknown CMU dictionary format');
-// The downloaded upstream file contains one object literal and no executable expressions.
-const cmu = Function(`"use strict"; return (${cmuSource.slice(objectStart, objectEnd)});`)();
+const objectEnd = cmuSource.lastIndexOf('}') + 1;
+if (declaration < 0 || objectStart < 0 || objectEnd <= objectStart) throw new Error('Unknown CMU dictionary format');
+// The upstream module is a single JSON-compatible object literal; parse it as data instead of executing it.
+let cmu;
+try { cmu = JSON.parse(cmuSource.slice(objectStart, objectEnd)); }
+catch (error) { throw new Error(`CMU dictionary is not plain JSON data: ${error.message}`); }
 
 const writtenSyllables = new Map();
 for (const line of fs.readFileSync(writtenPath, 'utf8').trim().split(/\r?\n/)) {
