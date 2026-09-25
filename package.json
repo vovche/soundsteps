@@ -7,10 +7,11 @@
     "node": ">=20"
   },
   "scripts": {
+    "build": "node scripts/build-html.mjs",
     "wordlist": "node scripts/build-school-wordlist.mjs sources/NGSL-GR.csv sources/NDL.csv sources/NAWL.txt sources/school-wordlist.csv",
     "fetch:wiktionary": "node scripts/fetch-wiktionary-cards.mjs sources/school-wordlist.csv sources/wiktionary-cards.json",
     "fetch:wikidata": "node scripts/fetch-wikidata-labels.mjs sources/school-wordlist.csv sources/wikidata-uk.tsv",
-    "lexicon": "node scripts/build-phonetic-lexicon.mjs sources/school-wordlist.csv sources/cmudict-index.js sources/syllables.txt sources/hyph_en_US.dic index.html",
-    "cards": "node scripts/build-dictionary-cards.mjs sources/wiktionary-cards.json sources/wikidata-uk.tsv index.html"
+    "lexicon": "node scripts/build-phonetic-lexicon.mjs sources/school-wordlist.csv sources/cmudict-index.js sources/syllables.txt sources/hyph_en_US.dic data",
+    "cards": "node scripts/build-dictionary-cards.mjs sources/wiktionary-cards.json sources/wikidata-uk.tsv data/dictionary-cards.json"
   }
 }

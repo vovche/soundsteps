@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-/** Merge Wiktionary cards, prior verified translations, CC0 labels and ESL fallbacks into index.html. */
+/** Merge Wiktionary cards, prior verified translations, manual and CC0 labels into data/dictionary-cards.json. */
 import fs from 'node:fs';
+import { readJSON, writeJSONLines } from './lib/json-data.mjs';
 import { cleanTranslations } from './lib/translations.mjs';
 import { MANUAL_EXTRA } from './lib/manual-translations-extra.mjs';
 
-const [cardsPath, wikidataPath, htmlPath] = process.argv.slice(2);
-if (!cardsPath || !wikidataPath || !htmlPath) throw new Error('Usage: node build-dictionary-cards.mjs cards.json uk-en_wiki.txt index.html');
+const [cardsPath, wikidataPath, outputPath = 'data/dictionary-cards.json'] = process.argv.slice(2);
+if (!cardsPath || !wikidataPath) throw new Error('Usage: node build-dictionary-cards.mjs cards.json uk-en_wiki.tsv [data/dictionary-cards.json]');
 
 const cards = JSON.parse(fs.readFileSync(cardsPath, 'utf8'));
-const currentHtml = fs.readFileSync(htmlPath, 'utf8');
-const previousMatch = currentHtml.match(/const DICTIONARY_CARDS = (\{.*?\});\s*\/\* DICTIONARY_CARDS_END \*\//s);
-const previousCards = previousMatch ? JSON.parse(previousMatch[1]) : {};
+// Translations already in the data file were reviewed earlier; keep them as a source.
+const previousCards = readJSON(outputPath, {});
 const wikidata = new Map();
 for (const line of fs.readFileSync(wikidataPath, 'utf8').split(/\r?\n/)) {
   const [uk, en] = line.split('\t');
@@ -52,12 +52,5 @@ for (const [word, source] of Object.entries(cards)) {
 }
 if (missingTranslations.length) throw new Error(`Missing Ukrainian translations (${missingTranslations.length}): ${missingTranslations.join(', ')}`);
 
-const data = `const DICTIONARY_CARDS = ${JSON.stringify(compact)};`;
-const startMarker = '/* DICTIONARY_CARDS_START */';
-const endMarker = '/* DICTIONARY_CARDS_END */';
-const html = currentHtml;
-const start = html.indexOf(startMarker);
-const end = html.indexOf(endMarker);
-if (start < 0 || end < start) throw new Error('Dictionary card markers not found');
-fs.writeFileSync(htmlPath, `${html.slice(0, start + startMarker.length)}\n      ${data}\n      ${html.slice(end)}`);
-console.log(`Embedded ${Object.keys(compact).length} complete translations; ${Object.values(compact).filter(card => card.o).length} origins; ${Object.values(compact).filter(card => card.c?.length).length} Ukrainian cognate sets (${Buffer.byteLength(data)} bytes).`);
+writeJSONLines(outputPath, compact);
+console.log(`Wrote ${Object.keys(compact).length} cards to ${outputPath}: ${Object.values(compact).filter(card => card.o).length} origins; ${Object.values(compact).filter(card => card.c?.length).length} Ukrainian cognate sets. Run npm run build to refresh index.html.`);

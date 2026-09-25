@@ -10,7 +10,13 @@ SoundSteps допомагає вчителю англійської зробит
 
 ## Як користуватися
 
-Відкрийте `index.html` у браузері. Сервер не потрібен.
+Зберіть файл і відкрийте `index.html` у браузері. Сервер не потрібен:
+
+```bash
+npm run build   # src/index.html + data/*.json + vendor/*.js → index.html
+```
+
+`index.html` генерується і в git не зберігається. Для розробки можна відкрити й `src/index.html` напряму: застосунок працюватиме, але без вбудованих словників.
 
 - **Текст** — вставте англійський текст і натисніть «Оновити розмітку».
 - **Ручне редагування** — клік вибирає слово, Shift+клік вибирає діапазон, далі призначте роль або введіть переклад. Подвійний клік відкриває словникову картку.
@@ -21,7 +27,11 @@ SoundSteps допомагає вчителю англійської зробит
 
 | Шлях | Призначення |
 | --- | --- |
-| `index.html` | Застосунок: розмітка, стилі, логіка та вбудовані словникові дані |
+| `src/index.html` | Застосунок: розмітка, стилі й логіка з заглушками для даних |
+| `data/*.json` | Словникові дані, по одному слову на рядок, щоб diff було зручно читати |
+| `vendor/` | Сторонні бібліотеки, які вбудовуються в збірку |
+| `scripts/build-html.mjs` | Збирає офлайновий `index.html`: вбудовує `vendor/*.js` і `data/*.json` |
+| `index.html` | Результат збірки (у `.gitignore`) |
 | `scripts/` | Конвеєр, що будує словникові дані з відкритих джерел |
 | `scripts/lib/` | Спільні модулі конвеєра (очищення перекладів, ручні переклади) |
 | `sources/` | Завантажені вхідні файли конвеєра (не в git, див. нижче) |
@@ -45,11 +55,12 @@ SoundSteps допомагає вчителю англійської зробит
 npm run wordlist          # sources/school-wordlist.csv
 npm run fetch:wiktionary  # sources/wiktionary-cards.json (English Wiktionary API, кілька хвилин)
 npm run fetch:wikidata    # sources/wikidata-uk.tsv (Wikidata API)
-npm run lexicon           # склади, наголоси, IPA → index.html
-npm run cards             # переклади, частини мови, етимологія → index.html
+npm run lexicon           # склади, наголоси, IPA → data/phonetic-lexicon.json, data/pronunciation.json
+npm run cards             # переклади, частини мови, етимологія → data/dictionary-cards.json
+npm run build             # index.html
 ```
 
-`build-dictionary-cards.mjs` зберігає переклади, які вже є у файлі, і доповнює їх ручними (`MANUAL`, `scripts/lib/manual-translations-extra.mjs`). Мітки Wikidata беруться лише тоді, коли інших перекладів немає. Усі списки проходять через `scripts/lib/translations.mjs`, який відкидає латиницю, назви статей і дублікати.
+`build-dictionary-cards.mjs` зберігає переклади, які вже є в `data/dictionary-cards.json`, і доповнює їх ручними (`MANUAL`, `scripts/lib/manual-translations-extra.mjs`). Мітки Wikidata беруться лише тоді, коли інших перекладів немає. Усі списки проходять через `scripts/lib/translations.mjs`, який відкидає латиницю, назви статей і дублікати.
 
 ## Джерела даних і ліцензії
 
@@ -57,6 +68,6 @@ npm run cards             # переклади, частини мови, ети�
 - **CMU Pronouncing Dictionary** — Carnegie Mellon University; BSD-подібна ліцензія.
 - **English Wiktionary** — переклади, частини мови й етимологія; CC BY-SA 4.0.
 - **Wikidata** — українські мітки; CC0.
-- **qrcode-generator 1.4.4** — Kazuhiko Arase; MIT, вбудовано в `index.html`.
+- **qrcode-generator 1.4.4** — Kazuhiko Arase; MIT, `vendor/qrcode-generator.min.js`.
 
 Словникові дані походять з Wiktionary і списків NGSL (CC BY-SA 4.0), тому при поширенні `index.html` разом із цими даними потрібно зберегти атрибуцію й поширювати **дані** на умовах CC BY-SA 4.0. Атрибуція вже є в інтерфейсі («Дані: …» і підвал словникової картки). Ліцензію для власного коду ще не обрано.

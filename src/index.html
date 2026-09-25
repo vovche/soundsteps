@@ -1,0 +1,1578 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>SoundSteps — syllables & SVOMPT</title>
+  <style>
+    :root {
+      --ink: #14213d;
+      --muted: #62708a;
+      --paper: #ffffff;
+      --canvas: #f3f6fb;
+      --line: #d9e0eb;
+      --blue: #2f66d0;
+      --blue-soft: #eaf1ff;
+      --coral: #ef6a5b;
+      --coral-soft: #fff0ed;
+      --shadow: 0 18px 52px rgba(21, 40, 78, .10);
+      --s: #3667d6;
+      --v: #d94f63;
+      --o: #8a55c5;
+      --m: #d57a17;
+      --p: #16866f;
+      --t: #1878a5;
+      --x: #6c7890;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(47,102,208,.09), transparent 31rem),
+        radial-gradient(circle at 94% 16%, rgba(239,106,91,.08), transparent 28rem),
+        var(--canvas);
+      color: var(--ink);
+      font: 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, textarea, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1440px; margin: 0 auto; padding: 20px 24px 48px; }
+
+    header {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 42px; height: 42px; border-radius: 13px;
+      display: grid; place-items: center;
+      background: var(--ink); color: #fff; font-weight: 850; letter-spacing: -.06em;
+      box-shadow: 0 8px 20px rgba(20,33,61,.18);
+    }
+    .brand strong { display: block; font-size: 1.12rem; letter-spacing: -.025em; }
+    .brand span { color: var(--muted); font-size: .79rem; }
+    .header-actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .btn {
+      border: 1px solid var(--line); background: #fff; color: var(--ink);
+      min-height: 42px; border-radius: 11px; padding: 9px 14px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-weight: 720; transition: transform .15s, box-shadow .15s, border-color .15s;
+    }
+    .btn:hover { border-color: #aebbd0; box-shadow: 0 7px 18px rgba(35,58,100,.09); transform: translateY(-1px); }
+    .btn:focus-visible, .word:focus-visible, .role:focus-visible, textarea:focus, input:focus, select:focus {
+      outline: 3px solid rgba(47,102,208,.22); outline-offset: 2px;
+    }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn-icon { width: 17px; height: 17px; }
+    .mode-button { min-width: 112px; }
+
+    .workspace {
+      display: grid; grid-template-columns: minmax(310px, 390px) minmax(0, 1fr);
+      gap: 18px; align-items: start;
+    }
+    .panel, .sheet {
+      background: rgba(255,255,255,.94); border: 1px solid rgba(210,220,234,.9);
+      border-radius: 18px; box-shadow: var(--shadow);
+    }
+    .panel { padding: 20px; position: sticky; top: 18px; }
+    .section-kicker {
+      margin: 0 0 5px; color: var(--blue); font-size: .74rem;
+      font-weight: 850; letter-spacing: .1em; text-transform: uppercase;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 6px; font-size: 1.45rem; line-height: 1.18; letter-spacing: -.035em; }
+    h2 { margin-bottom: 5px; font-size: 1.28rem; letter-spacing: -.025em; }
+    .intro, .helper { color: var(--muted); }
+    .intro { font-size: .9rem; margin-bottom: 17px; }
+    label.field-label { display: block; margin-bottom: 7px; font-size: .84rem; font-weight: 800; }
+    textarea, input, select {
+      width: 100%; border: 1px solid var(--line); border-radius: 11px;
+      color: var(--ink); background: #fff; padding: 11px 12px;
+    }
+    textarea { resize: vertical; min-height: 186px; line-height: 1.55; }
+    .field-row { margin-bottom: 14px; }
+    .compact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .switch-row {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 10px 0; border-top: 1px solid #edf0f5; font-size: .88rem;
+    }
+    .switch { position: relative; width: 42px; height: 24px; flex: none; }
+    .switch input { position: absolute; opacity: 0; pointer-events: none; }
+    .switch span { position: absolute; inset: 0; border-radius: 99px; background: #c9d1dd; transition: .2s; }
+    .switch span::after { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 4px #7a8799; }
+    .switch input:checked + span { background: var(--blue); }
+    .switch input:checked + span::after { transform: translateX(18px); }
+    .render-btn { width: 100%; margin-top: 7px; }
+
+    .selection-box {
+      margin-top: 18px; padding-top: 17px; border-top: 1px solid var(--line);
+    }
+    .selection-box h3 { font-size: .95rem; margin-bottom: 4px; }
+    .selection-status { min-height: 38px; color: var(--muted); font-size: .8rem; margin-bottom: 8px; }
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .role {
+      border: 1px solid var(--line); background: #fff; min-height: 42px; border-radius: 9px;
+      font-size: .8rem; font-weight: 850; color: var(--role-color, var(--ink));
+    }
+    .role:hover { border-color: var(--role-color, var(--blue)); background: color-mix(in srgb, var(--role-color, var(--blue)) 7%, white); }
+    .translation-editor { display: grid; grid-template-columns: 1fr auto; gap: 7px; margin-top: 9px; }
+    .translation-editor input { min-width: 0; }
+    .translation-editor .btn { padding-inline: 12px; }
+    .card-open { width: 100%; margin-top: 8px; }
+    .mini-help { margin: 9px 0 0; font-size: .75rem; color: var(--muted); }
+    .coverage-status {
+      margin: 10px 0 0; padding: 9px 10px; border-radius: 9px;
+      background: var(--blue-soft); color: #385783; font-size: .74rem; line-height: 1.4;
+    }
+    .source-note { margin: 7px 2px 0; color: var(--muted); font-size: .66rem; line-height: 1.35; }
+
+    .sheet { min-height: 780px; overflow: hidden; }
+    .sheet-top {
+      padding: 21px 26px 17px; border-bottom: 1px solid var(--line);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+    }
+    .sheet-title { margin: 0; }
+    .sheet-subtitle { margin: 3px 0 0; color: var(--muted); font-size: .84rem; }
+    .level-pill { flex: none; padding: 6px 10px; border-radius: 99px; background: var(--blue-soft); color: var(--blue); font-size: .73rem; font-weight: 850; }
+    .legend { padding: 12px 26px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #fbfcfe; border-bottom: 1px solid var(--line); }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; color: var(--muted); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--role-color); }
+    .pages { padding: 26px; }
+    .sentence {
+      position: relative; padding: 22px 20px 18px; margin-bottom: 17px;
+      border: 1px solid #e1e6ef; border-radius: 15px; background: #fff;
+      break-inside: avoid; page-break-inside: avoid;
+    }
+    .sentence-no {
+      position: absolute; top: -9px; left: 14px; background: var(--ink); color: #fff;
+      min-width: 25px; height: 20px; padding: 0 7px; border-radius: 99px;
+      display: grid; place-items: center; font-size: .68rem; font-weight: 850;
+    }
+    .sentence-flow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 13px 7px; }
+    .phrase {
+      position: relative; display: inline-flex; align-items: flex-start; gap: 4px; flex-wrap: wrap;
+      min-width: 92px;
+      padding: 5px 7px 23px; border-radius: 9px; border-bottom: 3px solid var(--role-color, transparent);
+      background: color-mix(in srgb, var(--role-color, var(--x)) 6%, white);
+    }
+    .phrase.no-role, body.hide-questions .phrase { min-width: 0; }
+    body.questions-both .phrase:not(.no-role) { min-width: 164px; }
+    .phrase.no-role { padding-left: 1px; padding-right: 1px; background: transparent; border-bottom-color: transparent; }
+    .question {
+      position: absolute; left: 7px; bottom: 3px; white-space: nowrap;
+      color: var(--role-color, var(--muted)); font-size: .61rem; font-weight: 850; letter-spacing: .015em;
+    }
+    .word {
+      appearance: none; border: 0; border-radius: 6px; padding: 1px 2px; background: transparent;
+      color: var(--ink); font: 750 1.22rem/1.48 Georgia, "Times New Roman", serif;
+      position: relative; transition: background .12s, box-shadow .12s;
+    }
+    .word:hover { background: rgba(47,102,208,.10); }
+    .word.selected { background: #dfe9ff; box-shadow: inset 0 0 0 2px var(--blue); }
+    .syllable:nth-child(odd) { color: var(--blue); }
+    .syllable:nth-child(even) { color: var(--coral); }
+    .syllable + .syllable::before { content: "·"; color: #98a4b7; margin: 0 .02em; }
+    .plain-word .syllable { color: var(--ink); }
+    .plain-word .syllable + .syllable::before { display: none; }
+    .punct { padding: 5px 0 23px; font: 750 1.2rem/1.48 Georgia, serif; }
+    .tooltip {
+      position: fixed; z-index: 20; pointer-events: none; opacity: 0; transform: translate(-50%, 7px);
+      max-width: min(280px, 80vw); padding: 8px 10px; border-radius: 8px;
+      background: var(--ink); color: #fff; font-size: .75rem; line-height: 1.35;
+      box-shadow: 0 8px 25px rgba(20,33,61,.24); transition: opacity .1s, transform .1s;
+    }
+    .tooltip.show { opacity: 1; transform: translate(-50%, 0); }
+    .empty {
+      min-height: 540px; display: grid; place-items: center; text-align: center; color: var(--muted); padding: 40px;
+    }
+    .empty-icon { width: 56px; height: 56px; margin: 0 auto 13px; border-radius: 17px; display: grid; place-items: center; background: var(--blue-soft); color: var(--blue); font-size: 1.5rem; }
+    .toast {
+      position: fixed; right: 20px; bottom: 20px; z-index: 30; padding: 11px 15px;
+      border-radius: 10px; background: var(--ink); color: #fff; box-shadow: var(--shadow);
+      font-size: .84rem; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 50; display: none; place-items: center;
+      padding: 20px; background: rgba(12, 24, 48, .52); backdrop-filter: blur(5px);
+    }
+    .modal-backdrop.open { display: grid; }
+    .dictionary-card {
+      width: min(620px, 100%); max-height: min(780px, 92vh); overflow: auto;
+      border-radius: 20px; background: #fff; box-shadow: 0 30px 90px rgba(8,20,44,.34);
+      border: 1px solid rgba(255,255,255,.7);
+    }
+    .card-head {
+      position: sticky; top: 0; z-index: 1; display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 18px; padding: 22px 24px 18px;
+      background: rgba(255,255,255,.96); border-bottom: 1px solid var(--line); backdrop-filter: blur(8px);
+    }
+    .card-head h2 { margin: 0; font: 800 2rem/1.1 Georgia, serif; letter-spacing: -.03em; }
+    .card-lemma { margin: 4px 0 0; color: var(--muted); font-size: .78rem; }
+    .close-card { width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 1.25rem; }
+    .card-body { padding: 22px 24px 26px; }
+    .card-syllables { display: flex; flex-wrap: wrap; align-items: baseline; margin-bottom: 17px; font: 750 1.45rem/1.4 Georgia, serif; }
+    .card-syllables span:nth-child(odd) { color: var(--blue); }
+    .card-syllables span:nth-child(even) { color: var(--coral); }
+    .card-syllables span + span::before { content: '·'; color: #98a4b7; }
+    .card-syllables .primary-stress { text-decoration: underline 3px currentColor; text-underline-offset: 5px; }
+    .card-section { padding: 15px 0; border-top: 1px solid #edf0f5; }
+    .card-section h3 { margin: 0 0 8px; color: var(--muted); font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; }
+    .card-section p { margin: 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip { padding: 6px 9px; border-radius: 99px; background: var(--blue-soft); color: #2c57aa; font-size: .8rem; font-weight: 750; }
+    .chip.cognate { background: #e9f7f2; color: #16715f; }
+    .card-list { margin: 0; padding-left: 20px; color: #3f4d65; }
+    .card-list li + li { margin-top: 5px; }
+    .ipa { font: 700 1.05rem/1.4 "Noto Sans", "Segoe UI", sans-serif; color: var(--ink); }
+    .spelling-out { margin-top: 8px !important; color: var(--muted); letter-spacing: .08em; }
+    .card-source { padding: 12px 24px 18px; color: var(--muted); font-size: .68rem; line-height: 1.4; }
+    .dictionary-links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .dictionary-link { text-decoration: none; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--blue); background: #fff; font-size: .78rem; font-weight: 800; }
+    .dictionary-link:hover { border-color: var(--blue); background: var(--blue-soft); }
+    .share-dialog { width: min(620px, 100%); border-radius: 20px; background: #fff; box-shadow: 0 30px 90px rgba(8,20,44,.34); overflow: hidden; }
+    .share-body { padding: 20px 24px 24px; }
+    .share-body .field-row:last-of-type { margin-bottom: 10px; }
+    .share-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .share-note { margin: 8px 0 0; color: var(--muted); font-size: .77rem; line-height: 1.45; }
+    .share-note.warning { color: #a44929; }
+    .qr-wrap { display: grid; place-items: center; min-height: 230px; margin-top: 16px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .qr-wrap svg { width: min(230px, 72vw); height: auto; display: block; }
+    .qr-placeholder { max-width: 360px; text-align: center; color: var(--muted); font-size: .82rem; }
+    .mobile-nav { display: none; }
+    .student-mode .workspace { grid-template-columns: 1fr; }
+    .student-mode .panel, .student-mode #shareBtn, .student-mode #downloadBtn { display: none; }
+    .student-mode .sheet { width: min(980px, 100%); margin-inline: auto; }
+    .shared-locked .mode-button { display: none; }
+    .desktop-only { display: none; }
+
+    body.dark-mode {
+      --ink: #e7eefb; --muted: #9eadc4; --paper: #141d2c; --canvas: #0b111c; --line: #2b3950;
+      --blue: #72a0ff; --blue-soft: #1d3156; --coral: #ff8a7d; --coral-soft: #482a2b;
+      background: radial-gradient(circle at 12% 0%, rgba(74,123,220,.16), transparent 31rem), radial-gradient(circle at 94% 16%, rgba(239,106,91,.10), transparent 28rem), var(--canvas);
+      color: var(--ink);
+    }
+    body.dark-mode .brand-mark { background: #e8eefb; color: #111a29; }
+    body.dark-mode .panel, body.dark-mode .sheet, body.dark-mode .sentence, body.dark-mode .dictionary-card, body.dark-mode .share-dialog,
+    body.dark-mode .card-head, body.dark-mode textarea, body.dark-mode input, body.dark-mode select, body.dark-mode .btn, body.dark-mode .role,
+    body.dark-mode .dictionary-link { background: #141d2c; color: var(--ink); border-color: var(--line); }
+    body.dark-mode .sheet-top, body.dark-mode .legend, body.dark-mode .card-head { border-color: var(--line); }
+    body.dark-mode .legend { background: #101827; }
+    body.dark-mode .phrase { background: color-mix(in srgb, var(--role-color, var(--x)) 16%, #141d2c); }
+    body.dark-mode .word { color: var(--ink); }
+    body.dark-mode .word:hover { background: rgba(114,160,255,.14); }
+    body.dark-mode .word.selected { background: #253f70; }
+    body.dark-mode .chip { background: #1d3156; color: #a9c5ff; }
+    body.dark-mode .chip.cognate { background: #173a34; color: #79d7c4; }
+    body.dark-mode .card-list { color: #aebbd0; }
+    body.dark-mode .qr-wrap { background: #fff; }
+    body.dark-mode .tooltip, body.dark-mode .toast { background: #e8eefb; color: #111a29; }
+    body.dark-mode .mobile-nav { background: rgba(20,29,44,.96); border-color: var(--line); }
+    body.dark-mode .mobile-tab.active { background: #1d3156; }
+    body.dark-mode .dictionary-link { color: var(--blue); }
+    body.dark-mode .btn-primary { background: var(--blue); color: #071225; border-color: var(--blue); }
+
+    @media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+      .desktop-only { display: block; }
+    }
+
+    @media (min-width: 901px) and (max-width: 1150px) {
+      .app { padding-inline: 14px; }
+      .workspace { grid-template-columns: minmax(300px, 340px) minmax(0, 1fr); gap: 12px; }
+      .panel { padding: 17px; }
+      .pages { padding: 20px; }
+    }
+
+    @media (max-width: 900px) {
+      .app { padding: 14px 14px 88px; }
+      .workspace { grid-template-columns: 1fr; }
+      .panel { position: static; }
+      .sheet { min-height: 520px; }
+      body:not(.student-mode) .panel [data-mobile-pane] { display: none; }
+      body:not(.student-mode).mobile-tab-text .panel [data-mobile-pane="text"],
+      body:not(.student-mode).mobile-tab-settings .panel [data-mobile-pane="settings"] { display: block; }
+      body:not(.student-mode).mobile-tab-sheet .panel { display: none; }
+      body:not(.student-mode):not(.mobile-tab-sheet) .sheet { display: none; }
+      .mobile-nav {
+        position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 40;
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 6px;
+        border: 1px solid rgba(202,213,229,.92); border-radius: 16px; background: rgba(255,255,255,.94);
+        box-shadow: 0 14px 40px rgba(20,33,61,.2); backdrop-filter: blur(12px);
+      }
+      .student-mode .mobile-nav { display: none; }
+      .mobile-tab {
+        border: 0; min-height: 48px; border-radius: 11px; background: transparent; color: var(--muted);
+        display: grid; place-items: center; align-content: center; gap: 1px; font-size: .69rem; font-weight: 800;
+      }
+      .mobile-tab svg { width: 19px; height: 19px; }
+      .mobile-tab.active { color: var(--blue); background: var(--blue-soft); }
+      .student-mode .dictionary-card { align-self: end; width: 100%; max-height: min(76vh, 720px); border-radius: 22px 22px 0 0; }
+      .student-mode .modal-backdrop { padding: 0; align-items: end; }
+      .student-mode .card-head { padding-top: 15px; }
+      .student-mode .card-head::before { content: ""; position: absolute; top: 7px; left: 50%; width: 42px; height: 4px; border-radius: 9px; background: #cbd3df; transform: translateX(-50%); }
+      .student-mode .word { min-height: 42px; padding-inline: 4px; }
+    }
+    @media (max-width: 560px) {
+      header { align-items: center; }
+      .brand span { display: none; }
+      .header-actions > .btn:not(.mode-button) span { display: none; }
+      .header-actions { gap: 6px; }
+      .header-actions .btn { min-width: 44px; padding-inline: 11px; }
+      .header-actions #downloadBtn { display: none; }
+      body:not(.student-mode) .header-actions #printBtn { display: none; }
+      body:not(.student-mode) .header-actions #themeBtn { display: none; }
+      .mode-button { min-width: 96px; padding-inline: 10px !important; font-size: .78rem; }
+      .sheet-top, .legend, .pages { padding-left: 16px; padding-right: 16px; }
+      .compact-grid { grid-template-columns: 1fr; }
+      .legend { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+      .legend::-webkit-scrollbar { display: none; }
+      .legend-item { flex: none; }
+      .share-dialog { align-self: end; border-radius: 22px 22px 0 0; max-height: 92vh; overflow: auto; }
+      #shareModal { padding: 0; align-items: end; }
+    }
+
+    @page { size: A4 portrait; margin: 12mm 11mm 14mm; }
+    @media print {
+      body { background: #fff; color: #000; font-size: 11pt; }
+      .app { max-width: none; padding: 0; }
+      header, .panel, .legend, .level-pill, .tooltip, .toast, .modal-backdrop, .mobile-nav { display: none !important; }
+      .workspace { display: block; }
+      .sheet { border: 0; border-radius: 0; box-shadow: none; min-height: 0; }
+      .sheet-top { padding: 0 0 7mm; border-bottom: 1px solid #777; }
+      .sheet-title { font-size: 16pt; }
+      .sheet-subtitle { font-size: 8.5pt; color: #555; }
+      .pages { padding: 7mm 0 0; }
+      .sentence { padding: 5.5mm 4.5mm 4mm; margin-bottom: 5mm; border-color: #aaa; border-radius: 3mm; }
+      .sentence-no { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .word { font-size: 13.5pt; }
+      .phrase { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .question { font-size: 6.4pt; }
+      .word.selected { background: transparent; box-shadow: none; }
+      body.dark-mode { background: #fff; color: #000; }
+      body.dark-mode .sheet, body.dark-mode .sentence, body.dark-mode .sheet-top, body.dark-mode .phrase { background: #fff; color: #000; border-color: #aaa; }
+      body.dark-mode .word { color: #000; }
+    }
+  </style>
+</head>
+<body class="mobile-tab-text">
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">Ss</div>
+        <div><strong>SoundSteps</strong><span>English reading worksheet</span></div>
+      </div>
+      <div class="header-actions">
+        <button class="btn mode-button" id="modeBtn" type="button" title="Перемкнути режим перегляду">
+          <span id="modeBtnLabel">Режим учня</span>
+        </button>
+        <button class="btn" id="shareBtn" type="button" title="Поділитися підготовленим уроком">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Поділитися</span>
+        </button>
+        <button class="btn" id="themeBtn" type="button" title="Увімкнути або вимкнути темний режим" aria-label="Темний режим">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2z"/></svg><span>Тема</span>
+        </button>
+        <button class="btn" id="downloadBtn" type="button" title="Зберегти окрему копію HTML">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14"/></svg><span>Зберегти HTML</span>
+        </button>
+        <button class="btn btn-primary" id="printBtn" type="button">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg><span>Друк / PDF</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel" aria-label="Налаштування">
+        <p class="section-kicker">Підготовка тексту</p>
+        <h1>Розкладіть текст на зрозумілі кроки</h1>
+        <p class="intro">Вставте англійський текст. Склади й ролі в реченні можна виправити після автоматичної розмітки.</p>
+
+        <div data-mobile-pane="text">
+        <div class="field-row">
+          <label class="field-label" for="sourceText">Англійський текст</label>
+          <textarea id="sourceText" spellcheck="true">Every Saturday, my younger brother carefully feeds the ducks near our house. After breakfast, we often walk to the quiet park together. Last week, he brought some fresh bread for them.</textarea>
+        </div>
+        <div class="compact-grid field-row">
+          <div>
+            <label class="field-label" for="worksheetTitle">Назва аркуша</label>
+            <input id="worksheetTitle" value="Reading practice" maxlength="80">
+          </div>
+          <div>
+            <label class="field-label" for="level">Рівень</label>
+            <select id="level">
+              <option>A1–A2</option>
+              <option selected>A2–B1</option>
+              <option>B1–B2</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary render-btn" id="renderBtn" type="button">Оновити розмітку</button>
+        </div>
+        <div data-mobile-pane="settings">
+        <div class="switch-row">
+          <span>Кольорові склади</span>
+          <label class="switch"><input id="syllableToggle" type="checkbox" checked><span aria-hidden="true"></span></label>
+        </div>
+        <div class="switch-row">
+          <span>Питання SVOMPT</span>
+          <label class="switch"><input id="questionsToggle" type="checkbox" checked><span aria-hidden="true"></span></label>
+        </div>
+        <div class="field-row" style="margin-top:10px">
+          <label class="field-label" for="questionLanguage">Мова питань</label>
+          <select id="questionLanguage">
+            <option value="en">English</option>
+            <option value="uk" selected>Українська</option>
+            <option value="both">English + українська</option>
+          </select>
+        </div>
+        <div class="switch-row">
+          <span id="translationToggleLabel">Переклад при наведенні</span>
+          <label class="switch"><input id="translationToggle" type="checkbox" checked><span aria-hidden="true"></span></label>
+        </div>
+        <div class="switch-row">
+          <span>Темний режим</span>
+          <label class="switch"><input id="themeToggle" type="checkbox"><span aria-hidden="true"></span></label>
+        </div>
+        <p class="coverage-status" id="coverageStatus">Підрахунок словникового покриття…</p>
+        <p class="source-note">Дані: NGSL‑GR 1.0 (топ‑3000) + NDL 1.1 + NAWL 1.2; CMUdict; Webster/Gutenberg; English Wiktionary (CC BY-SA); Wikidata (CC0).</p>
+
+        <section class="selection-box" aria-labelledby="editHeading">
+          <h3 id="editHeading">Ручне редагування</h3>
+          <div class="selection-status" id="selectionStatus">Виберіть одне або кілька слів у результаті.</div>
+          <div class="role-grid" id="roleGrid"></div>
+          <div class="translation-editor">
+            <input id="translationInput" placeholder="Переклад вибраної фрази" aria-label="Переклад вибраної фрази">
+            <button class="btn" id="applyTranslation" type="button">OK</button>
+          </div>
+          <button class="btn card-open" id="openCardBtn" type="button" disabled>Відкрити словникову картку</button>
+          <p class="mini-help desktop-only">Клік — вибір слова, Shift+клік — вибір діапазону. Подвійний клік відкриває словникову картку.</p>
+        </section>
+        </div>
+      </aside>
+
+      <section class="sheet" aria-label="Попередній перегляд аркуша">
+        <div class="sheet-top">
+          <div>
+            <h2 class="sheet-title" id="outputTitle">Reading practice</h2>
+            <p class="sheet-subtitle">Read the sentences. Notice the syllables and sentence structure.</p>
+          </div>
+          <span class="level-pill" id="outputLevel">A2–B1</span>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="pages" id="output"></div>
+      </section>
+    </main>
+  </div>
+  <div class="tooltip" id="tooltip" role="tooltip"></div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="modal-backdrop" id="cardModal" aria-hidden="true">
+    <article class="dictionary-card" role="dialog" aria-modal="true" aria-labelledby="cardTitle">
+      <div class="card-head">
+        <div><h2 id="cardTitle"></h2><p class="card-lemma" id="cardLemma"></p></div>
+        <button class="btn close-card" id="closeCardBtn" type="button" aria-label="Закрити картку">×</button>
+      </div>
+      <div class="card-body" id="cardBody"></div>
+      <div class="card-source">Джерела: NGSL‑GR 1.0, NDL 1.1, NAWL 1.2, CMUdict та English Wiktionary (CC BY-SA). IPA — американська вимова CMUdict. Етимологічні зв’язки вилучено зі структурованих шаблонів Wiktionary; споріднені слова не завжди мають однакове сучасне значення.</div>
+    </article>
+  </div>
+  <div class="modal-backdrop" id="shareModal" aria-hidden="true">
+    <article class="share-dialog" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+      <div class="card-head">
+        <div><h2 id="shareTitle">Поділитися уроком</h2><p class="card-lemma">Текст і налаштування зберігаються всередині посилання.</p></div>
+        <button class="btn close-card" id="closeShareBtn" type="button" aria-label="Закрити">×</button>
+      </div>
+      <div class="share-body">
+        <div class="field-row" id="shareBaseRow">
+          <label class="field-label" for="shareBase">Адреса опублікованої сторінки</label>
+          <input id="shareBase" type="url" inputmode="url" placeholder="https://example.com/soundsteps/">
+          <p class="share-note">Потрібна лише коли файл відкрито локально. Після публікації адреса визначатиметься автоматично.</p>
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="shareLink">Посилання на цей урок</label>
+          <input id="shareLink" readonly aria-describedby="shareStatus">
+        </div>
+        <div class="share-actions">
+          <button class="btn btn-primary" id="copyShareBtn" type="button">Копіювати посилання</button>
+          <button class="btn" id="nativeShareBtn" type="button">Надіслати…</button>
+        </div>
+        <div class="switch-row" style="margin-top:14px">
+          <span>Відкрити в режимі учня</span>
+          <label class="switch"><input id="shareStudentMode" type="checkbox" checked><span aria-hidden="true"></span></label>
+        </div>
+        <div class="switch-row">
+          <span>Дозволити редагування</span>
+          <label class="switch"><input id="shareAllowEditing" type="checkbox"><span aria-hidden="true"></span></label>
+        </div>
+        <p class="share-note" id="shareStatus"></p>
+        <div class="qr-wrap" id="qrCode"><div class="qr-placeholder">QR-код з’явиться після створення коректного посилання.</div></div>
+      </div>
+    </article>
+  </div>
+  <nav class="mobile-nav" id="mobileNav" aria-label="Розділи редактора">
+    <button class="mobile-tab active" type="button" data-tab="text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg><span>Текст</span></button>
+    <button class="mobile-tab" type="button" data-tab="sheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6"/></svg><span>Аркуш</span></button>
+    <button class="mobile-tab" type="button" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg><span>Опції</span></button>
+  </nav>
+  <script id="savedState" type="application/json">null</script>
+
+  <!-- qrcode-generator 1.4.4, MIT License, Kazuhiko Arase. Embedded for offline use. -->
+  <script src="../vendor/qrcode-generator.min.js"></script>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const ROLES = {
+        S: { name: 'Subject', short: 'S', question: 'Who? / What?', uk: 'Хто? / Що?', color: 'var(--s)' },
+        V: { name: 'Verb', short: 'V', question: 'What does?', uk: 'Що робить?', color: 'var(--v)' },
+        O: { name: 'Object', short: 'O', question: 'Whom? / What?', uk: 'Кого? / Що?', color: 'var(--o)' },
+        M: { name: 'Manner', short: 'M', question: 'How?', uk: 'Як?', color: 'var(--m)' },
+        P: { name: 'Place', short: 'P', question: 'Where?', uk: 'Де?', color: 'var(--p)' },
+        T: { name: 'Time', short: 'T', question: 'When?', uk: 'Коли?', color: 'var(--t)' },
+        X: { name: 'Без ролі', short: '×', question: '', uk: 'Без ролі', color: 'var(--x)' }
+      };
+
+      // Short, context-friendly tooltip translations (including inflected forms such as "feeds" → "годує").
+      // They take priority over DICTIONARY_CARDS, whose first senses are often too broad for a tooltip.
+      const CURATED_TRANSLATIONS = {
+        every: 'кожен', saturday: 'субота', my: 'мій', younger: 'молодший', brother: 'брат', carefully: 'обережно', feeds: 'годує', feed: 'годувати', the: 'означений артикль', ducks: 'качки', near: 'біля', our: 'наш', house: 'будинок', after: 'після', breakfast: 'сніданок', we: 'ми', often: 'часто', walk: 'гуляти / йти', to: 'до', quiet: 'тихий', park: 'парк', together: 'разом', last: 'минулий', week: 'тиждень', he: 'він', brought: 'приніс', some: 'дещо / деякі', fresh: 'свіжий', bread: 'хліб', for: 'для', them: 'їм', i: 'я', you: 'ти / ви', she: 'вона', it: 'воно', they: 'вони', read: 'читати', write: 'писати', school: 'школа', teacher: 'вчитель / вчителька', student: 'учень / учениця', morning: 'ранок', evening: 'вечір', yesterday: 'вчора', today: 'сьогодні', tomorrow: 'завтра', quickly: 'швидко', slowly: 'повільно', always: 'завжди', sometimes: 'іноді', never: 'ніколи', in: 'у / в', on: 'на', at: 'біля / о', under: 'під', behind: 'за', with: 'з', and: 'і', but: 'але', is: 'є', are: 'є', was: 'був / була', were: 'були', has: 'має', have: 'мати', can: 'могти'
+      };
+
+      const SYLLABLE_EXCEPTIONS = {
+        every: ['ev','er','y'], saturday: ['Sat','ur','day'], younger: ['young','er'], carefully: ['care','ful','ly'], feeds: ['feeds'], ducks: ['ducks'], house: ['house'], breakfast: ['break','fast'], often: ['of','ten'], quiet: ['qui','et'], together: ['to','geth','er'], brought: ['brought'], some: ['some'], fresh: ['fresh'], bread: ['bread'], teacher: ['teach','er'], student: ['stu','dent'], people: ['peo','ple'], family: ['fam','i','ly'], beautiful: ['beau','ti','ful'], interesting: ['in','ter','est','ing'], favourite: ['fa','vour','ite'], different: ['dif','fer','ent'], evening: ['eve','ning'], morning: ['morn','ing'], little: ['lit','tle'], english: ['Eng','lish'], language: ['lan','guage'], school: ['school'], write: ['write'], read: ['read'], walked: ['walked'], watched: ['watched']
+      };
+
+      // Lexicon data lives in data/*.json and is inlined by scripts/build-html.mjs.
+      const PHONETIC_LEXICON = /* @json data/phonetic-lexicon.json */ {};
+      const PRONUNCIATION_DATA = /* @json data/pronunciation.json */ {};
+      const DICTIONARY_CARDS = /* @json data/dictionary-cards.json */ {};
+
+      const SUBJECTS = new Set(['i','you','he','she','it','we','they','this','that','these','those','who','everyone','everybody','someone','somebody','nobody','anyone']);
+      const AUX = new Set([
+        'am','is','are','was','were','be','been','being','do','does','did','have','has','had',
+        'can','could','will','would','shall','should','may','might','must','cannot',
+        "don't","doesn't","didn't","isn't","aren't","wasn't","weren't","can't","couldn't","won't",
+        "wouldn't","shouldn't","haven't","hasn't","hadn't","mustn't"
+      ]);
+      // Base forms of frequent verbs. Inflected forms are generated below; irregular pasts are listed separately.
+      const BASE_VERBS = ('go come walk run read write eat drink play study learn like love hate make take bring feed see watch look help live work ' +
+        'speak say tell talk give get buy sell pay find lose keep put set let send spend meet leave stay visit travel fly drive ride swim ' +
+        'sing dance draw paint cook clean wash open close start begin finish stop wait want need know think feel hear listen understand ' +
+        'remember forget teach sit stand sleep wake grow build break fall win carry catch throw hold wear use try call ask answer ' +
+        'show move turn change enjoy prefer hope plan decide agree explain describe choose follow arrive return climb jump laugh cry smile ' +
+        'shout sleep rest relax practise practice check fix mend repair borrow lend share spell count collect order print type ' +
+        'join invite marry cut hit shut hurt cost fight become seem mean sleep dream fill miss hurry happen belong bake boil fry ' +
+        'feed grow plant pick water pull push kick lie lay hide seek shine rise sit lead teach wish worry believe cross drop fetch ' +
+        'improve prepare produce protect provide receive reach reduce save serve solve support touch trust visit vote warn ' +
+        'add allow appear become bring celebrate compare complete continue create deliver develop discover discuss enter ' +
+        'exercise feed hang imagine include introduce invent kiss knock mark mix note notice offer pack pass pray promise ' +
+        'rain snow shop skate ski surf taste smell sound train translate paint pour post reply repeat review rush score sew shake ' +
+        'shave shower sign sink ski slide smoke sneeze sort speed spill spread steal sting stir stretch sweep swing tear test thank ' +
+        'tidy tie trip wander wave weigh whisper wonder wrap yawn yell').split(/\s+/);
+      const IRREGULAR_VERBS = {
+        be:['was','were','been'], go:['went','gone'], come:['came'], run:['ran'], read:[], write:['wrote','written'], eat:['ate','eaten'],
+        drink:['drank','drunk'], make:['made'], take:['took','taken'], bring:['brought'], feed:['fed'], see:['saw','seen'], speak:['spoke','spoken'],
+        say:['said'], tell:['told'], give:['gave','given'], get:['got','gotten'], buy:['bought'], sell:['sold'], pay:['paid'], find:['found'],
+        lose:['lost'], keep:['kept'], put:[], set:[], let:[], send:['sent'], spend:['spent'], meet:['met'], leave:['left'], fly:['flew','flown'],
+        drive:['drove','driven'], ride:['rode','ridden'], swim:['swam','swum'], sing:['sang','sung'], draw:['drew','drawn'], begin:['began','begun'],
+        know:['knew','known'], think:['thought'], feel:['felt'], hear:['heard'], understand:['understood'], forget:['forgot','forgotten'],
+        teach:['taught'], sit:['sat'], stand:['stood'], sleep:['slept'], wake:['woke','woken'], grow:['grew','grown'], build:['built'],
+        break:['broke','broken'], fall:['fell','fallen'], win:['won'], catch:['caught'], throw:['threw','thrown'], hold:['held'], wear:['wore','worn'],
+        become:['became'], mean:['meant'], cut:[], hit:[], shut:[], hurt:[], cost:[], fight:['fought'], lie:['lay','lain'], lay:['laid'],
+        hide:['hid','hidden'], seek:['sought'], shine:['shone'], rise:['rose','risen'], lead:['led'], lend:['lent'], choose:['chose','chosen'],
+        dream:['dreamt'], hang:['hung'], shake:['shook','shaken'], sink:['sank','sunk'], slide:['slid'], spread:[], steal:['stole','stolen'],
+        sting:['stung'], sweep:['swept'], swing:['swung'], tear:['tore','torn'], sew:['sewn'], have:['had'], do:['did','done'], bear:['bore','born']
+      };
+      function verbForms(base) {
+        const forms = [base];
+        const consonantY = /[^aeiou]y$/.test(base);
+        forms.push(consonantY ? base.slice(0, -1) + 'ies' : /(s|x|z|ch|sh|o)$/.test(base) ? base + 'es' : base + 's');
+        const doubled = /^[^aeiou]*[aeiou][bdgklmnprt]$/.test(base) ? base + base.at(-1) : null;
+        if (base.endsWith('e')) forms.push(base + 'd', base.slice(0, -1) + 'ing');
+        else if (consonantY) forms.push(base.slice(0, -1) + 'ied', base + 'ing');
+        else forms.push(base + 'ed', base + 'ing');
+        if (base.endsWith('ie')) forms.push(base.slice(0, -2) + 'ying');
+        if (doubled) forms.push(doubled + 'ed', doubled + 'ing');
+        return forms.concat(IRREGULAR_VERBS[base] || []);
+      }
+      const VERB_FORMS = new Set([...BASE_VERBS, ...Object.keys(IRREGULAR_VERBS)].flatMap(verbForms));
+      // Words that look like verb forms (-ed/-ing/-s) but are nouns or adjectives in typical school texts.
+      const NON_VERBS = new Set([
+        'morning','evening','thing','things','something','nothing','everything','anything','king','ceiling','building','buildings',
+        'wedding','pudding','ring','spring','string','wing','sibling','bed','red','shed','sled','hundred','seed','speed','weed',
+        'interesting','boring','exciting','amazing','surprising','tiring','relaxing','annoying','frightening','charming','delicious',
+        'interested','bored','excited','tired','surprised','scared','worried','married','pleased','crowded','talented',
+        'news','bus','gas','yes','glass','class','grass','dress','address','lens','series','species','always','sometimes','perhaps'
+      ]);
+      const DETERMINERS = new Set([
+        'the','a','an','my','your','his','her','its','our','their','this','that','these','those','some','any','every','each','no',
+        'many','much','few','several','all','both','either','neither','another','other','whose','which','what',
+        'one','two','three','four','five','six','seven','eight','nine','ten','first','second','third','last','next'
+      ]);
+      const TIME_WORDS = new Set([
+        'today','tomorrow','yesterday','tonight','now','then','later','soon','early','late','already','still','yet','ago','recently','lately',
+        'always','often','sometimes','never','usually','rarely','seldom','occasionally','ever','once','twice','finally','eventually',
+        'daily','weekly','monthly','yearly','hourly','nightly','morning','afternoon','evening','night','day','days','week','weeks','weekend',
+        'month','months','year','years','hour','hours','minute','minutes','moment','o\'clock','noon','midnight','summer','winter','spring',
+        'autumn','season','holidays','christmas','easter','birthday',
+        'monday','tuesday','wednesday','thursday','friday','saturday','sunday','mondays','tuesdays','wednesdays','thursdays','fridays',
+        'saturdays','sundays','january','february','march','april','may','june','july','august','september','october','november','december'
+      ]);
+      // Determiners that turn a following time noun into a time phrase: "every day", "last week", "next summer".
+      const TIME_DETERMINERS = new Set(['every','each','last','next','this','that','all','one','some']);
+      // Words that are ambiguous in TIME_WORDS and only count as time when they follow a time determiner or preposition.
+      const WEAK_TIME_WORDS = new Set(['may','march','spring','day','days','moment','second','fall']);
+      const PLACE_PREPS = new Set(['in','at','on','near','inside','outside','under','above','behind','beside','between','around','to','from','into','onto','across','through','along','over','past','towards','toward','opposite']);
+      const TIME_PREPS = new Set(['after','before','during','since','until','till']);
+      const MANNER_WORDS = new Set(['together','alone','well','badly','fast','hard','loudly','quietly']);
+      // Common -ly words that are not adverbs of manner.
+      const LY_NOT_MANNER = new Set([
+        'only','family','july','fly','reply','apply','supply','ugly','holy','friendly','lovely','lonely','silly','jelly','belly','italy',
+        'rely','likely','unlikely','curly','oily','bully','lily','ally','assembly','butterfly','firefly','anomaly','rally','tally','costly',
+        'deadly','elderly','lively','chilly','hilly','smelly','woolly','jolly','early','daily','weekly','monthly','yearly','hourly','nightly',
+        'really','nearly','hardly','simply','exactly','especially','probably','certainly','actually','totally','completely','absolutely'
+      ]);
+      const SUBJECT_CONTRACTION = /^(i|you|he|she|it|we|they|there|that|what|who|where|here)'(m|re|s|ve|ll|d)$/;
+      // Time adverbs that stand on their own and end a prepositional phrase: "in the kitchen now".
+      const STANDALONE_TIME = new Set(['today','tomorrow','yesterday','tonight','now','then','later','soon','already','still','yet','always','often','sometimes','never','usually','rarely','seldom','ever','recently','lately']);
+      const PLACE_ADVERBS = new Set(['here','there','home','abroad','upstairs','downstairs','outside','inside','outdoors','indoors','everywhere','somewhere','nowhere','anywhere','away','back']);
+      const NO_ROLE_WORDS = new Set(['please','hello','hi','yes','thanks','oh','well-done']);
+      const WH_ROLES = { where:'P', when:'T', how:'M', what:'O', who:'O', whom:'O', which:'O', why:null };
+      const selected = new Set();
+      let sentences = [];
+      let lastSelected = null;
+      let modeledText = '';
+      let appMode = 'teacher';
+      let sharedLocked = false;
+      const DRAFT_KEY = 'soundsteps-draft-v1';
+
+      const $ = id => document.getElementById(id);
+      const escapeHTML = value => String(value).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+      const normalize = word => word.toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z']/g, '');
+
+      const LANGUAGE_NAMES = {
+        enm:'середньоанглійської', ang:'давньоанглійської', fro:'старофранцузької', frm:'середньофранцузької',
+        fr:'французької', la:'латини', grc:'давньогрецької', de:'німецької', nl:'нідерландської',
+        non:'давньоскандинавської', gem:'германської', 'gem-pro':'прагерманської', 'ine-pro':'праіндоєвропейської',
+        it:'італійської', es:'іспанської', ar:'арабської', he:'івриту', yi:'їдишу', ja:'японської', zh:'китайської'
+      };
+      const POS_NAMES = { n:'іменник', v:'дієслово', adj:'прикметник', adv:'прислівник', pron:'займенник', prep:'прийменник', conj:'сполучник', det:'визначник', art:'артикль', int:'вигук', num:'числівник', part:'частка' };
+
+      function cardKeyFor(word) {
+        if (DICTIONARY_CARDS[word]) return word;
+        const candidates = [];
+        if (word.endsWith('ies')) candidates.push(word.slice(0, -3) + 'y');
+        if (word.endsWith('ied')) candidates.push(word.slice(0, -3) + 'y');
+        if (word.endsWith('es')) candidates.push(word.slice(0, -1), word.slice(0, -2));
+        if (word.endsWith('s')) candidates.push(word.slice(0, -1));
+        if (word.endsWith('ed')) {
+          const stem = word.slice(0, -2);
+          candidates.push(word.slice(0, -1), stem);
+          if (stem.at(-1) === stem.at(-2)) candidates.push(stem.slice(0, -1));
+        }
+        if (word.endsWith('ing')) {
+          const stem = word.slice(0, -3);
+          candidates.push(stem, stem + 'e');
+          if (stem.at(-1) === stem.at(-2)) candidates.push(stem.slice(0, -1));
+          if (stem.endsWith('y')) candidates.push(stem.slice(0, -1) + 'ie');
+        }
+        return candidates.find(candidate => candidate.length >= 3 && DICTIONARY_CARDS[candidate]) || null;
+      }
+
+      function dictionaryTranslation(word) {
+        const key = cardKeyFor(word);
+        return key ? DICTIONARY_CARDS[key]?.t?.slice(0, 3).join(' / ') || '' : '';
+      }
+
+      function dictionaryParts(word) {
+        if (SYLLABLE_EXCEPTIONS[word]) return { parts: [...SYLLABLE_EXCEPTIONS[word]], source: 'curated' };
+        const entry = PHONETIC_LEXICON[word];
+        return entry ? { parts: entry.split('/')[0].split('|'), source: 'dictionary' } : null;
+      }
+
+      function derivedInflection(word) {
+        const base = candidate => dictionaryParts(candidate);
+        const valid = parts => parts?.length && parts.join('') === word ? parts : null;
+        const appendToLast = (parts, addition) => [...parts.slice(0, -1), parts.at(-1) + addition];
+
+        // Plural nouns and third-person verbs: walks, watches, studies, uses.
+        if (word.endsWith('ies') && word.length > 4) {
+          const root = word.slice(0, -3) + 'y';
+          const found = base(root);
+          if (found) {
+            const parts = [...found.parts];
+            parts[parts.length - 1] = parts.at(-1).slice(0, -1) + 'ies';
+            if (valid(parts)) return parts;
+          }
+        }
+        if (word.endsWith('es') && word.length > 3) {
+          const root = word.slice(0, -2);
+          const found = base(root);
+          if (found) {
+            const extraSyllable = /(s|x|z|ch|sh)$/.test(root);
+            const parts = extraSyllable ? [...found.parts, 'es'] : appendToLast(found.parts, 'es');
+            if (valid(parts)) return parts;
+          }
+        }
+        if (word.endsWith('s') && !word.endsWith('ss') && word.length > 2) {
+          const root = word.slice(0, -1);
+          const found = base(root);
+          if (found) {
+            let parts;
+            if (/(s|x|z|ch|sh|ce|ge|se|ze)$/.test(root)) {
+              parts = [...found.parts];
+              if (root.endsWith('e')) parts[parts.length - 1] = parts.at(-1).slice(0, -1);
+              parts.push('es');
+            } else parts = appendToLast(found.parts, 's');
+            if (valid(parts)) return parts;
+          }
+        }
+
+        // Regular past forms: walked, wanted, loved, studied, stopped.
+        if (word.endsWith('ied') && word.length > 4) {
+          const root = word.slice(0, -3) + 'y';
+          const found = base(root);
+          if (found) {
+            const parts = [...found.parts];
+            parts[parts.length - 1] = parts.at(-1).slice(0, -1) + 'ied';
+            if (valid(parts)) return parts;
+          }
+        }
+        if (word.endsWith('ed') && word.length > 3) {
+          const candidates = [
+            { root: word.slice(0, -1), kind: 'final-e' },
+            { root: word.slice(0, -2), kind: 'plain' }
+          ];
+          const stem = word.slice(0, -2);
+          if (stem.length > 2 && stem.at(-1) === stem.at(-2)) candidates.push({ root: stem.slice(0, -1), kind: 'double' });
+          for (const candidate of candidates) {
+            const found = base(candidate.root);
+            if (!found) continue;
+            const makesSyllable = /(t|d|te|de)$/.test(candidate.root);
+            let parts = [...found.parts];
+            if (makesSyllable) {
+              if (candidate.kind === 'final-e' && candidate.root.endsWith('e')) {
+                parts[parts.length - 1] = parts.at(-1).slice(0, -1);
+                parts.push('ed');
+              } else parts.push('ed');
+            } else {
+              const addition = candidate.kind === 'final-e' ? 'd' : candidate.kind === 'double' ? stem.at(-1) + 'ed' : 'ed';
+              parts = appendToLast(parts, addition);
+            }
+            if (valid(parts)) return parts;
+          }
+        }
+
+        // Present participles and gerunds: going, making, running, lying.
+        if (word.endsWith('ing') && word.length > 4) {
+          const stem = word.slice(0, -3);
+          const candidates = [
+            { root: stem, kind: 'plain' },
+            { root: stem + 'e', kind: 'drop-e' }
+          ];
+          if (stem.length > 2 && stem.at(-1) === stem.at(-2)) candidates.push({ root: stem.slice(0, -1), kind: 'double' });
+          if (stem.endsWith('y')) candidates.push({ root: stem.slice(0, -1) + 'ie', kind: 'ie-to-y' });
+          for (const candidate of candidates) {
+            const found = base(candidate.root);
+            if (!found) continue;
+            let parts = [...found.parts];
+            if (candidate.kind === 'drop-e') parts[parts.length - 1] = parts.at(-1).slice(0, -1);
+            if (candidate.kind === 'ie-to-y') parts[parts.length - 1] = parts.at(-1).slice(0, -2) + 'y';
+            parts.push(candidate.kind === 'double' ? stem.at(-1) + 'ing' : 'ing');
+            if (valid(parts)) return parts;
+          }
+        }
+        return null;
+      }
+
+      function analyzeSyllables(original) {
+        const clean = normalize(original);
+        if (!clean) return { parts: [original], source: 'heuristic' };
+        const direct = dictionaryParts(clean);
+        if (direct) return { parts: preserveCase(original, direct.parts), source: direct.source };
+        const derived = derivedInflection(clean);
+        if (derived) return { parts: preserveCase(original, derived), source: 'derived' };
+        if (clean.length < 4) return { parts: [original], source: 'heuristic' };
+        let word = clean;
+        const groups = [];
+        const vowel = ch => /[aeiouy]/.test(ch);
+        let start = 0;
+        for (let i = 1; i < word.length - 1; i++) {
+          if (vowel(word[i - 1]) && !vowel(word[i])) {
+            let nextVowel = i + 1;
+            while (nextVowel < word.length && !vowel(word[nextVowel])) nextVowel++;
+            if (nextVowel < word.length) {
+              let cut = nextVowel - i > 1 ? i + 1 : i;
+              const cluster = word.slice(i, nextVowel);
+              if (/^(ch|sh|th|ph|wh|ck|ng|qu|tr|dr|br|cr|fr|gr|pr|st|sp|sk|sl|sm|sn|sw)$/.test(cluster)) cut = i;
+              if (cut > start) { groups.push(word.slice(start, cut)); start = cut; }
+            }
+          }
+        }
+        groups.push(word.slice(start));
+        if (groups.length > 1 && groups.at(-1) === 'e' && !/(le|ye)$/.test(word)) groups[groups.length - 2] += groups.pop();
+        if (groups.length > 1 && /^(ed|es)$/.test(groups.at(-1)) && !/(ted|ded|ses|zes|ches|shes)$/.test(word)) groups[groups.length - 2] += groups.pop();
+        return { parts: preserveCase(original, groups.filter(Boolean)), source: 'heuristic' };
+      }
+
+      function preserveCase(original, parts) {
+        const joined = parts.join('');
+        if (original === original.toUpperCase()) return parts.map(p => p.toUpperCase());
+        if (/^[A-Z]/.test(original)) return parts.map((p, i) => i === 0 ? p[0].toUpperCase() + p.slice(1) : p);
+        if (joined.length !== original.length) return [original];
+        return parts;
+      }
+
+      // Titles never end a sentence; other abbreviations end one only when a capital letter follows.
+      const TITLE_ABBREVIATIONS = new Set(['mr','mrs','ms','dr','prof','st','mt','jr','sr','sgt','capt','gen','rev']);
+      const OTHER_ABBREVIATIONS = new Set(['etc','e.g','i.e','vs','approx','dept','fig','inc','ltd','co','no','a.m','p.m','jan','feb','apr','aug','sep','sept','oct','nov','dec']);
+
+      function splitSentences(text) {
+        const clean = text.replace(/\s+/g, ' ').trim();
+        if (!clean) return [];
+        const result = [];
+        const boundary = /[.!?]+["'”’)\]]*(?=\s|$)/g;
+        let start = 0, match;
+        while ((match = boundary.exec(clean))) {
+          const end = match.index + match[0].length;
+          const rest = clean.slice(end).trimStart();
+          if (match[0][0] === '.' && rest) {
+            const previous = (clean.slice(start, match.index).match(/([A-Za-z]+(?:\.[A-Za-z]+)*)$/) || [])[1] || '';
+            const lower = previous.toLowerCase();
+            if (TITLE_ABBREVIATIONS.has(lower)) continue;
+            if (/^[A-Z]$/.test(previous)) continue; // initials: "J. K. Rowling"
+            if (OTHER_ABBREVIATIONS.has(lower) && !/^[A-Z"“'‘(]/.test(rest)) continue;
+          }
+          result.push(clean.slice(start, end).trim());
+          start = end;
+        }
+        if (start < clean.length) result.push(clean.slice(start).trim());
+        return result.filter(Boolean);
+      }
+
+      function tokenize(sentence, si) {
+        const raw = sentence.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*|\d+(?:[.,]\d+)?|[^\sA-Za-z\d]/g) || [];
+        return raw.map((text, wi) => {
+          const isWord = /^[A-Za-z]/.test(text);
+          const analysis = isWord ? analyzeSyllables(text) : { parts: [text], source: null };
+          return { id: `${si}-${wi}`, text, word: isWord, role: null, translation: '', syllableSource: analysis.source, syllables: analysis.parts };
+        });
+      }
+
+      function partsOfSpeech(word) {
+        const key = cardKeyFor(word);
+        return key ? DICTIONARY_CARDS[key]?.p || [] : [];
+      }
+
+      // Is this word a verb form in this position? `previous` is the preceding word (normalized) or ''.
+      function isVerbAt(word, previous) {
+        if (AUX.has(word)) return true;
+        if (NON_VERBS.has(word) || TIME_WORDS.has(word) || SUBJECTS.has(word) || DETERMINERS.has(word)) return false;
+        if (DETERMINERS.has(previous) || PLACE_PREPS.has(previous) && previous !== 'to') return false;
+        if (VERB_FORMS.has(word)) return true;
+        const pos = partsOfSpeech(word);
+        if (!pos.includes('v')) return false;
+        // Words that are also nouns/adjectives only count after a subject-like word.
+        if (pos.some(p => p === 'n' || p === 'adj')) return SUBJECTS.has(previous);
+        return true;
+      }
+
+      function findVerb(tokens, wordIndexes, from = 0) {
+        const candidates = wordIndexes.filter(i => i >= from);
+        const previousWord = i => {
+          const position = wordIndexes.indexOf(i);
+          return position > 0 ? normalize(tokens[wordIndexes[position - 1]].text) : '';
+        };
+        let found = candidates.find(i => isVerbAt(normalize(tokens[i].text), previousWord(i)));
+        if (found !== undefined) return found;
+        // Last resort: an -s word that follows a noun phrase ("The children plays" is rare; "Mum cooks" is common).
+        found = candidates.find(i => i > wordIndexes[0] && /[^s]s$/.test(normalize(tokens[i].text))
+          && !DETERMINERS.has(previousWord(i)) && !NON_VERBS.has(normalize(tokens[i].text)));
+        return found;
+      }
+
+      function isMannerAdverb(word) {
+        if (MANNER_WORDS.has(word)) return true;
+        if (!/[a-z]{2}ly$/.test(word) || LY_NOT_MANNER.has(word) || TIME_WORDS.has(word)) return false;
+        const pos = partsOfSpeech(word);
+        return !pos.length || pos.includes('adv');
+      }
+
+      function isTimeWord(tokens, wordIndexes, n) {
+        const word = normalize(tokens[wordIndexes[n]].text);
+        if (!TIME_WORDS.has(word)) return false;
+        if (!WEAK_TIME_WORDS.has(word)) return true;
+        const previous = n > 0 ? normalize(tokens[wordIndexes[n - 1]].text) : '';
+        return TIME_DETERMINERS.has(previous) || TIME_PREPS.has(previous) || ['in','on','at'].includes(previous);
+      }
+
+      // Returns the index range of a prepositional phrase: from the preposition up to (not including)
+      // punctuation, the main verb, a subject pronoun or another preposition.
+      function phraseEnd(tokens, start, stopAt) {
+        let end = start + 1;
+        for (; end < tokens.length; end++) {
+          const token = tokens[end];
+          if (/^[,;:.!?]$/.test(token.text) || stopAt.has(end)) break;
+          const word = token.word ? normalize(token.text) : '';
+          if (word && (SUBJECTS.has(word) || STANDALONE_TIME.has(word) || ['every','last','next'].includes(word) || PLACE_PREPS.has(word) || TIME_PREPS.has(word) || word === 'and' || word === 'but')) break;
+        }
+        return end;
+      }
+
+      function paintRange(tokens, start, end, role) {
+        for (let i = start; i < end; i++) if (tokens[i].word) tokens[i].role = role;
+      }
+
+      function autoTag(tokens) {
+        const wordIndexes = tokens.map((t, i) => t.word ? i : -1).filter(i => i >= 0);
+        if (!wordIndexes.length) return;
+        const words = wordIndexes.map(i => normalize(tokens[i].text));
+        const isQuestion = tokens.at(-1)?.text === '?';
+
+        // 1. Find the verb group.
+        let verb = findVerb(tokens, wordIndexes);
+        const contraction = wordIndexes.find(i => SUBJECT_CONTRACTION.test(normalize(tokens[i].text)));
+        if (contraction !== undefined && (verb === undefined || verb > contraction)) {
+          // "I'm reading", "It's cold": the contraction holds the subject and the auxiliary.
+          const main = findVerb(tokens, wordIndexes, contraction + 1);
+          verb = main !== undefined && main - contraction <= 3 ? main : contraction;
+        }
+        if (verb === undefined) verb = wordIndexes[Math.min(1, wordIndexes.length - 1)];
+
+        const verbGroup = new Set([verb]);
+        const subjectIndexes = new Set();
+        const whRole = WH_ROLES[words[0]];
+        let inverted = false;
+        if (isQuestion && AUX.has(normalize(tokens[verb].text)) && verb <= wordIndexes[1]) {
+          // Inverted question: (Wh-) AUX SUBJECT MAIN-VERB …  → "Do you like apples?", "Where does she live?"
+          const main = findVerb(tokens, wordIndexes, verb + 1);
+          const hasSubjectBetween = main !== undefined && wordIndexes.some(i => i > verb && i < main);
+          if (hasSubjectBetween) {
+            verbGroup.add(main);
+            wordIndexes.forEach(i => { if (i > verb && i < main) subjectIndexes.add(i); });
+            verb = main;
+            inverted = true;
+          }
+        }
+        // Extend the group with following auxiliaries, "not" and verb forms: "has not finished", "can swim".
+        let last = verb;
+        for (let n = wordIndexes.indexOf(verb) + 1; n < wordIndexes.length && n <= wordIndexes.indexOf(verb) + 3; n++) {
+          const i = wordIndexes[n], word = words[n];
+          const previous = normalize(tokens[last].text);
+          const afterAux = AUX.has(previous) || previous === 'not' || SUBJECT_CONTRACTION.test(previous);
+          if (word === 'not' || AUX.has(word) || (afterAux && !NON_VERBS.has(word) && (VERB_FORMS.has(word) || /(ed|ing|en)$/.test(word)))) {
+            verbGroup.add(i); last = i;
+          } else break;
+        }
+
+        // 2. Core roles: subject before the verb, object after it.
+        const firstVerb = Math.min(...verbGroup);
+        wordIndexes.forEach(i => {
+          if (verbGroup.has(i)) tokens[i].role = 'V';
+          else if (subjectIndexes.has(i)) tokens[i].role = 'S';
+          else if (i < firstVerb) tokens[i].role = 'S';
+          else tokens[i].role = 'O';
+        });
+        // A contraction keeps the subject role: "I'm reading", and "It's cold" (no separate verb to show).
+        if (contraction !== undefined && (!verbGroup.has(contraction) || verbGroup.size === 1)) tokens[contraction].role = 'S';
+        wordIndexes.forEach((i, n) => { if (NO_ROLE_WORDS.has(words[n])) tokens[i].role = null; });
+        if (inverted && whRole !== undefined && wordIndexes[0] < firstVerb) tokens[wordIndexes[0]].role = whRole || null;
+
+        // 3. Adverbials: time, manner and prepositional phrases.
+        const stopAt = new Set(verbGroup);
+        for (let n = 0; n < wordIndexes.length; n++) {
+          const i = wordIndexes[n], word = words[n];
+          if (verbGroup.has(i)) continue;
+          if (isTimeWord(tokens, wordIndexes, n)) {
+            tokens[i].role = 'T';
+            const previous = n > 0 ? words[n - 1] : '';
+            if (TIME_DETERMINERS.has(previous) && !verbGroup.has(wordIndexes[n - 1])) tokens[wordIndexes[n - 1]].role = 'T';
+            if (word === 'ago') paintRange(tokens, wordIndexes[Math.max(0, n - 2)], i, 'T');
+          } else if (isMannerAdverb(word)) tokens[i].role = 'M';
+          else if (PLACE_ADVERBS.has(word) && i > firstVerb) tokens[i].role = 'P';
+
+          if (TIME_PREPS.has(word)) paintRange(tokens, i, phraseEnd(tokens, i, stopAt), 'T');
+          else if (word === 'by' && /^(bus|car|train|bike|bicycle|plane|taxi|boat|ship|tram|metro|underground|foot|hand|phone|email|post|chance|mistake)$/.test(words[n + 1] || '')) {
+            paintRange(tokens, i, phraseEnd(tokens, i, stopAt), 'M');
+          } else if (PLACE_PREPS.has(word)) {
+            const next = words[n + 1] || '';
+            // "to" + verb is an infinitive, not a place: "I want to play".
+            if (word === 'to' && next && !DETERMINERS.has(next) && (VERB_FORMS.has(next) || (partsOfSpeech(next).includes('v') && !partsOfSpeech(next).includes('n')))) continue;
+            const end = phraseEnd(tokens, i, stopAt);
+            const phrase = tokens.slice(i + 1, end);
+            const isTime = ['in','on','at','from','to','over','past'].includes(word)
+              && phrase.some(token => /^\d/.test(token.text) || (token.word && TIME_WORDS.has(normalize(token.text))));
+            paintRange(tokens, i, end, isTime ? 'T' : 'P');
+          }
+        }
+
+        // 4. A leading adverbial separated by a comma: "Every Saturday, …", "After breakfast, …", "In London, …".
+        const comma = tokens.findIndex(t => t.text === ',');
+        if (comma > 0 && comma < firstVerb) {
+          const lead = tokens.slice(0, comma).filter(t => t.word);
+          const leadWords = lead.map(t => normalize(t.text));
+          if (leadWords.some(w => TIME_WORDS.has(w)) || TIME_PREPS.has(leadWords[0])) lead.forEach(t => { t.role = 'T'; });
+          else if (PLACE_PREPS.has(leadWords[0])) lead.forEach(t => { t.role = 'P'; });
+        }
+
+        // "and"/"or" between two parts with the same role joins them: "quickly and clearly".
+        for (let n = 1; n < wordIndexes.length - 1; n++) {
+          if (!['and','or'].includes(words[n])) continue;
+          const before = tokens[wordIndexes[n - 1]].role, after = tokens[wordIndexes[n + 1]].role;
+          if (before && before === after) tokens[wordIndexes[n]].role = before;
+        }
+
+        tokens.forEach(t => { if (t.word) t.translation = defaultTranslation(t.text); });
+      }
+
+      function buildModel() {
+        selected.clear(); lastSelected = null;
+        modeledText = $('sourceText').value;
+        sentences = splitSentences(modeledText).map((sentence, si) => {
+          const tokens = tokenize(sentence, si); autoTag(tokens); return tokens;
+        });
+      }
+
+      function groupTokens(tokens) {
+        const groups = [];
+        tokens.forEach((token, index) => {
+          let role = token.word ? (token.role || 'X') : null;
+          const prev = groups.at(-1);
+          // Keep in-phrase punctuation such as "Mr." or "Smith's" inside the phrase when the next word continues it.
+          if (!token.word && prev?.role && /^[.'’&-]$/.test(token.text)) {
+            const next = tokens[index + 1];
+            if (next?.word && (next.role || 'X') === prev.role) role = prev.role;
+          }
+          if (prev && role && prev.role === role) prev.tokens.push(token);
+          else groups.push({ role, tokens: [token] });
+        });
+        return groups;
+      }
+
+      function phraseTranslation(group) {
+        return group.tokens.filter(t => t.word).map(t => t.translation).filter(Boolean).join(' ');
+      }
+
+      function roleQuestion(meta) {
+        const language = $('questionLanguage').value;
+        if (language === 'uk') return meta.uk;
+        if (language === 'both') return `${meta.question} / ${meta.uk}`;
+        return meta.question;
+      }
+
+      function render() {
+        $('outputTitle').textContent = $('worksheetTitle').value.trim() || 'Reading practice';
+        $('outputLevel').textContent = $('level').value;
+        document.body.classList.toggle('hide-questions', !$('questionsToggle').checked);
+        document.body.classList.toggle('questions-both', $('questionLanguage').value === 'both');
+        const showSyllables = $('syllableToggle').checked;
+        const wordTokens = sentences.flat().filter(token => token.word);
+        const derivedHits = wordTokens.filter(token => token.syllableSource === 'derived').length;
+        const dictionaryHits = wordTokens.filter(token => ['dictionary','curated','derived'].includes(token.syllableSource)).length;
+        const heuristicHits = wordTokens.length - dictionaryHits;
+        $('coverageStatus').textContent = wordTokens.length
+          ? `Вбудований словник: ${dictionaryHits}/${wordTokens.length} слів · похідні форми: ${derivedHits} · евристика: ${heuristicHits}`
+          : `Вбудовано ${Object.keys(PHONETIC_LEXICON).length} слів NGSL‑GR + NDL + NAWL.`;
+        if (!sentences.length) {
+          $('output').innerHTML = '<div class="empty"><div><div class="empty-icon">✎</div><strong>Додайте англійський текст</strong><p>Результат з’явиться тут.</p></div></div>';
+          updateSelectionUI(); return;
+        }
+        $('output').innerHTML = sentences.map((tokens, si) => {
+          const groups = groupTokens(tokens);
+          return `<article class="sentence"><span class="sentence-no">${si + 1}</span><div class="sentence-flow">${groups.map(group => {
+            if (!group.role) return group.tokens.map(t => `<span class="punct">${escapeHTML(t.text)}</span>`).join('');
+            const meta = ROLES[group.role];
+            const translation = phraseTranslation(group);
+            return `<span class="phrase ${group.role === 'X' ? 'no-role' : ''}" style="--role-color:${meta.color}" data-translation="${escapeHTML(translation)}">${group.tokens.map(t => {
+              if (!t.word) return `<span class="punct">${escapeHTML(t.text)}</span>`;
+              const chunks = t.syllables.map(s => `<span class="syllable">${escapeHTML(s)}</span>`).join('');
+              return `<button type="button" class="word ${selected.has(t.id) ? 'selected' : ''} ${showSyllables ? '' : 'plain-word'}" data-id="${t.id}" aria-pressed="${selected.has(t.id)}">${chunks}</button>`;
+            }).join('')}<span class="question">${$('questionsToggle').checked && group.role !== 'X' ? `${meta.short} · ${escapeHTML(roleQuestion(meta))}` : ''}</span></span>`;
+          }).join('')}</div></article>`;
+        }).join('');
+        attachWordEvents(); updateSelectionUI();
+      }
+
+      function renderLegend() {
+        $('legend').innerHTML = Object.entries(ROLES).filter(([key]) => key !== 'X').map(([key, r]) => `<span class="legend-item"><span class="legend-dot" style="--role-color:${r.color}"></span><strong>${key}</strong> ${r.name}</span>`).join('');
+        $('roleGrid').innerHTML = Object.entries(ROLES).map(([key,r]) => `<button type="button" class="role" data-role="${key}" style="--role-color:${r.color}">${r.short} · ${r.uk}</button>`).join('');
+      }
+
+      function tokenById(id) {
+        const [si, ti] = id.split('-').map(Number); return sentences[si]?.[ti];
+      }
+
+      function attachWordEvents() {
+        document.querySelectorAll('.word').forEach(el => {
+          el.addEventListener('click', event => {
+            const id = el.dataset.id;
+            if (appMode === 'student') {
+              const token = tokenById(id);
+              if (token) openDictionaryCard(token);
+              return;
+            }
+            if (event.shiftKey && lastSelected) {
+              const [sa, ia] = lastSelected.split('-').map(Number), [sb, ib] = id.split('-').map(Number);
+              if (sa === sb) {
+                for (let i = Math.min(ia,ib); i <= Math.max(ia,ib); i++) if (sentences[sa][i].word) selected.add(`${sa}-${i}`);
+              }
+            } else if (selected.has(id)) selected.delete(id); else selected.add(id);
+            lastSelected = id; render();
+          });
+          el.addEventListener('dblclick', event => {
+            event.preventDefault();
+            const token = tokenById(el.dataset.id);
+            if (token) openDictionaryCard(token);
+          });
+          el.addEventListener('mouseenter', showTooltip);
+          el.addEventListener('mousemove', moveTooltip);
+          el.addEventListener('mouseleave', hideTooltip);
+          el.addEventListener('focus', showTooltip);
+          el.addEventListener('blur', hideTooltip);
+        });
+      }
+
+      function selectedTokens() { return [...selected].map(tokenById).filter(Boolean); }
+      function updateSelectionUI() {
+        const tokens = selectedTokens();
+        $('selectionStatus').textContent = tokens.length ? `Вибрано: ${tokens.map(t => t.text).join(' ')}` : 'Виберіть одне або кілька слів у результаті.';
+        $('translationInput').value = tokens.length === 1 ? tokens[0].translation : '';
+        $('translationInput').disabled = !tokens.length;
+        $('applyTranslation').disabled = !tokens.length;
+        $('openCardBtn').disabled = tokens.length !== 1;
+      }
+
+      function assignRole(role) {
+        const tokens = selectedTokens(); if (!tokens.length) return toast('Спочатку виберіть слова');
+        tokens.forEach(t => t.role = role === 'X' ? null : role);
+        selected.clear(); lastSelected = null; render(); scheduleDraftSave(); toast('Роль оновлено');
+      }
+
+      function applyTranslation() {
+        const tokens = selectedTokens(); if (!tokens.length) return;
+        const text = $('translationInput').value.trim();
+        if (tokens.length === 1) tokens[0].translation = text;
+        else {
+          tokens.forEach((t, i) => t.translation = i === 0 ? text : '');
+        }
+        render(); scheduleDraftSave(); toast('Переклад збережено');
+      }
+
+      function etymologyText(origin) {
+        if (!origin?.length) return '';
+        const [kind, language, term] = origin;
+        const formationNames = { compound:'складанням основ', prefix:'додаванням префікса', suffix:'додаванням суфікса', affix:'додаванням афікса', confix:'поєднанням афіксів', blend:'злиттям частин слів' };
+        if (formationNames[kind]) return `Утворено ${formationNames[kind]}: ${origin.slice(1).map(value => `«${value}»`).join(' + ')}.`;
+        const shortNames = { clipping:'Скорочена форма', 'back-form':'Зворотне словотворення від', abbreviation:'Скорочення від', initialism:'Ініціальна абревіатура від', acronym:'Акронім від' };
+        if (shortNames[kind]) return `${shortNames[kind]} ${origin.slice(1).map(value => `«${value}»`).join(', ')}.`;
+        if (kind === 'unknown') return 'У джерелі походження позначено як невідоме або непевне.';
+        if (kind === 'onom') return 'У джерелі слово пов’язано зі звуконаслідуванням.';
+        const languageName = LANGUAGE_NAMES[language] || `мови з кодом ${language}`;
+        const form = term ? `: «${term}»` : '';
+        if (kind === 'ref') return `В етимологічній довідці згадано форму з ${languageName}${form}.`;
+        if (kind === 'inh') return `Успадковано з ${languageName}${form}.`;
+        if (['bor','lbor','slbor'].includes(kind)) return `Запозичено з ${languageName}${form}.`;
+        return `Походить від ${languageName}${form}.`;
+      }
+
+      function openDictionaryCard(token) {
+        const word = normalize(token.text);
+        const key = cardKeyFor(word);
+        const lookupWord = key || word;
+        const card = key ? DICTIONARY_CARDS[key] : null;
+        const entry = key ? PHONETIC_LEXICON[key] : null;
+        const stress = entry?.split('/')[1] || '';
+        const parts = token.syllables || [token.text];
+        $('cardTitle').textContent = token.text;
+        $('cardLemma').textContent = key && key !== word ? `Базова форма: ${key}` : key ? 'Словникова форма' : 'Поза вбудованим словником';
+
+        const syllables = parts.map((part, index) => `<span class="${stress.length === parts.length && stress[index] === '1' ? 'primary-stress' : ''}">${escapeHTML(part)}</span>`).join('');
+        const translations = card?.t?.length ? card.t : token.translation ? [token.translation] : [];
+        const pos = card?.p?.map(value => POS_NAMES[value] || value) || [];
+        const origins = card?.et?.length ? card.et : card?.o ? [card.o] : [];
+        const etymology = origins.map(etymologyText).filter(Boolean);
+        if (card?.e > 1) etymology.push(`English Wiktionary розрізняє ${card.e} етимологічні статті для різних значень; тут показано структуровані дані першої.`);
+        const pronunciation = key ? PRONUNCIATION_DATA[key] : null;
+        const ipa = pronunciation?.[0] || '';
+        const spellingHints = pronunciation?.[1] || [];
+        const spellingOut = lookupWord.split('').join(' · ');
+        const encodedWord = encodeURIComponent(lookupWord);
+        const dictionaryLinks = [
+          ['Wiktionary', `https://en.wiktionary.org/wiki/${encodedWord}`],
+          ['Cambridge', `https://dictionary.cambridge.org/dictionary/english/${encodedWord}`],
+          ['Oxford Learner’s', `https://www.oxfordlearnersdictionaries.com/search/english/?q=${encodedWord}`],
+          ['Merriam-Webster', `https://www.merriam-webster.com/dictionary/${encodedWord}`],
+          ['Etymonline', `https://www.etymonline.com/word/${encodedWord}`],
+          ['Google: pronunciation', `https://www.google.com/search?q=${encodeURIComponent(`${lookupWord} pronunciation`)}`]
+        ];
+
+        rememberFocus();
+        $('cardBody').innerHTML = `
+          <div class="card-syllables" aria-label="Поділ на склади">${syllables}</div>
+          <section class="card-section"><h3>Вимова і spelling</h3>${ipa ? `<p class="ipa">/${escapeHTML(ipa)}/</p>` : '<p>Транскрипція недоступна для слова поза вбудованим словником.</p>'}<p class="spelling-out" aria-label="Написання по літерах">${escapeHTML(spellingOut)}</p>${spellingHints.length ? `<ul class="card-list">${spellingHints.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul>` : ''}</section>
+          <section class="card-section"><h3>Переклад</h3>${translations.length ? `<div class="chips">${translations.map(value => `<span class="chip">${escapeHTML(value)}</span>`).join('')}</div>` : '<p>Переклад ще не додано.</p>'}</section>
+          ${pos.length ? `<section class="card-section"><h3>Частини мови</h3><div class="chips">${pos.map(value => `<span class="chip">${escapeHTML(value)}</span>`).join('')}</div></section>` : ''}
+          <section class="card-section"><h3>Етимологічна довідка</h3>${etymology.length ? `<ul class="card-list">${etymology.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul>` : `<p>English Wiktionary не подає для цієї форми структурованої етимології. Скористайтеся посиланнями нижче, щоб переглянути повну словникову статтю.</p>`}</section>
+          ${card?.c?.length ? `<section class="card-section"><h3>Українські когнати</h3><div class="chips">${card.c.map(value => `<span class="chip cognate">${escapeHTML(value)}</span>`).join('')}</div></section>` : ''}
+          <section class="card-section"><h3>Перевірити у словниках</h3><div class="dictionary-links">${dictionaryLinks.map(([label, url]) => `<a class="dictionary-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(label)} ↗</a>`).join('')}</div></section>`;
+        $('cardModal').classList.add('open');
+        $('cardModal').setAttribute('aria-hidden', 'false');
+        $('closeCardBtn').focus();
+      }
+
+      function closeDictionaryCard() {
+        if (!$('cardModal').classList.contains('open')) return;
+        $('cardModal').classList.remove('open');
+        $('cardModal').setAttribute('aria-hidden', 'true');
+        restoreFocus();
+      }
+
+      // Modal focus handling: remember what had focus, keep Tab inside the open dialog, restore on close.
+      let focusBeforeModal = null;
+      function rememberFocus() {
+        if (!document.querySelector('.modal-backdrop.open')) focusBeforeModal = document.activeElement;
+      }
+      function restoreFocus() {
+        const target = focusBeforeModal;
+        focusBeforeModal = null;
+        if (target && document.contains(target) && typeof target.focus === 'function') target.focus();
+      }
+      function trapFocus(event) {
+        if (event.key !== 'Tab') return;
+        const modal = document.querySelector('.modal-backdrop.open');
+        if (!modal) return;
+        const focusable = [...modal.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+          .filter(element => element.offsetParent !== null);
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable.at(-1);
+        if (event.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+      }
+
+      function showTooltip(event) {
+        if (!$('translationToggle').checked) return;
+        const token = tokenById(event.currentTarget.dataset.id); if (!token) return;
+        const phrase = event.currentTarget.closest('.phrase');
+        const text = token.translation || phrase?.dataset.translation || 'Додайте переклад у панелі ліворуч';
+        $('tooltip').textContent = text; $('tooltip').classList.add('show'); moveTooltip(event);
+      }
+      function moveTooltip(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        $('tooltip').style.left = `${rect.left + rect.width / 2}px`; $('tooltip').style.top = `${Math.max(8, rect.top - 39)}px`;
+      }
+      function hideTooltip() { $('tooltip').classList.remove('show'); }
+
+      function toast(message) {
+        $('toast').textContent = message; $('toast').classList.add('show');
+        clearTimeout(toast.timer); toast.timer = setTimeout(() => $('toast').classList.remove('show'), 1800);
+      }
+
+      function setMobileTab(tab, scroll = false) {
+        if (!['text','sheet','settings'].includes(tab)) tab = 'text';
+        document.body.classList.remove('mobile-tab-text','mobile-tab-sheet','mobile-tab-settings');
+        document.body.classList.add(`mobile-tab-${tab}`);
+        document.querySelectorAll('.mobile-tab').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
+        if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function setTheme(dark, persist = true) {
+        const enabled = dark === true;
+        document.body.classList.toggle('dark-mode', enabled);
+        $('themeToggle').checked = enabled;
+        $('themeBtn').setAttribute('aria-pressed', String(enabled));
+        $('themeBtn').title = enabled ? 'Вимкнути темний режим' : 'Увімкнути темний режим';
+        document.documentElement.style.colorScheme = enabled ? 'dark' : 'light';
+        if (persist) {
+          try { localStorage.setItem('soundsteps-theme', enabled ? 'dark' : 'light'); } catch (_) { /* Optional preference. */ }
+        }
+      }
+
+      function setAppMode(mode) {
+        appMode = mode === 'student' ? 'student' : 'teacher';
+        document.body.classList.toggle('student-mode', appMode === 'student');
+        document.body.classList.toggle('shared-locked', sharedLocked);
+        $('modeBtnLabel').textContent = appMode === 'student' ? 'Редактор' : 'Режим учня';
+        $('translationToggleLabel').textContent = matchMedia('(max-width: 900px)').matches ? 'Переклад при торканні' : 'Переклад при наведенні';
+        selected.clear(); lastSelected = null; hideTooltip(); closeDictionaryCard();
+        if (appMode === 'student') setMobileTab('sheet');
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function scheduleDraftSave() {
+        if (appMode !== 'teacher') return;
+        clearTimeout(scheduleDraftSave.timer);
+        scheduleDraftSave.timer = setTimeout(() => {
+          try { localStorage.setItem(DRAFT_KEY, JSON.stringify(lessonState())); }
+          catch (_) { /* Local drafts are optional. */ }
+        }, 450);
+      }
+
+      function defaultTranslation(word) {
+        const normalized = normalize(word);
+        return CURATED_TRANSLATIONS[normalized] || dictionaryTranslation(normalized) || '';
+      }
+
+      function lessonState() {
+        const roles = [];
+        const translations = {};
+        const modelIsCurrent = modeledText === $('sourceText').value;
+        if (modelIsCurrent) sentences.forEach((tokens, sentenceIndex) => {
+          const wordTokens = tokens.filter(token => token.word);
+          roles.push(wordTokens.map(token => token.role || '-').join(''));
+          wordTokens.forEach((token, wordIndex) => {
+            if (token.translation !== defaultTranslation(token.text)) translations[`${sentenceIndex}.${wordIndex}`] = token.translation;
+          });
+        });
+        return {
+          v: 1,
+          t: $('sourceText').value,
+          n: $('worksheetTitle').value,
+          l: $('level').value,
+          q: $('questionLanguage').value,
+          o: [$('syllableToggle').checked, $('questionsToggle').checked, $('translationToggle').checked, $('themeToggle').checked],
+          r: roles,
+          m: translations
+        };
+      }
+
+      function bytesToBase64URL(bytes) {
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+      }
+
+      function base64URLToBytes(value) {
+        const base64 = value.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((value.length + 3) % 4);
+        const binary = atob(base64);
+        return Uint8Array.from(binary, character => character.charCodeAt(0));
+      }
+
+      async function encodeLesson(state) {
+        const bytes = new TextEncoder().encode(JSON.stringify(state));
+        if ('CompressionStream' in window) {
+          const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate'));
+          return `z${bytesToBase64URL(new Uint8Array(await new Response(stream).arrayBuffer()))}`;
+        }
+        return `j${bytesToBase64URL(bytes)}`;
+      }
+
+      async function decodeLesson(payload) {
+        const mode = payload[0], bytes = base64URLToBytes(payload.slice(1));
+        let decoded = bytes;
+        if (mode === 'z') {
+          if (!('DecompressionStream' in window)) throw new Error('Цей браузер не підтримує стиснені посилання.');
+          const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate'));
+          decoded = new Uint8Array(await new Response(stream).arrayBuffer());
+        } else if (mode !== 'j') throw new Error('Невідомий формат посилання.');
+        return JSON.parse(new TextDecoder().decode(decoded));
+      }
+
+      function applyLessonState(state) {
+        if (!state || state.v !== 1 || typeof state.t !== 'string' || state.t.length > 20000) throw new Error('Некоректні дані уроку.');
+        $('sourceText').value = state.t;
+        if (typeof state.n === 'string') $('worksheetTitle').value = state.n.slice(0, 80);
+        if ([...$('level').options].some(option => option.value === state.l)) $('level').value = state.l;
+        if (['en','uk','both'].includes(state.q)) $('questionLanguage').value = state.q;
+        if (Array.isArray(state.o)) {
+          $('syllableToggle').checked = state.o[0] !== false;
+          $('questionsToggle').checked = state.o[1] !== false;
+          $('translationToggle').checked = state.o[2] !== false;
+          if (typeof state.o[3] === 'boolean') setTheme(state.o[3], false);
+        }
+        buildModel();
+        sentences.forEach((tokens, sentenceIndex) => {
+          const wordTokens = tokens.filter(token => token.word);
+          const roleString = Array.isArray(state.r) ? state.r[sentenceIndex] : '';
+          wordTokens.forEach((token, wordIndex) => {
+            const role = roleString?.[wordIndex];
+            if (role === '-') token.role = null;
+            else if (ROLES[role] && role !== 'X') token.role = role;
+            const translationKey = `${sentenceIndex}.${wordIndex}`;
+            if (state.m && Object.prototype.hasOwnProperty.call(state.m, translationKey)) token.translation = String(state.m[translationKey]).slice(0, 500);
+          });
+        });
+      }
+
+      async function restoreSharedLesson() {
+        const match = location.hash.match(/^#lesson=([A-Za-z0-9_-]+)$/);
+        if (!match) return false;
+        const state = await decodeLesson(match[1]);
+        applyLessonState(state);
+        sharedLocked = state.u === true && state.e !== true;
+        setAppMode(state.u === true ? 'student' : 'teacher');
+        return true;
+      }
+
+      function closeShareDialog() {
+        if (!$('shareModal').classList.contains('open')) return;
+        $('shareModal').classList.remove('open');
+        $('shareModal').setAttribute('aria-hidden', 'true');
+        restoreFocus();
+      }
+
+      function drawQRCode(url) {
+        try {
+          const code = qrcode(0, 'L');
+          code.addData(url, 'Byte');
+          code.make();
+          $('qrCode').innerHTML = code.createSvgTag(5, 2);
+          $('qrCode').querySelector('svg')?.setAttribute('aria-label', 'QR-код посилання на урок');
+          return true;
+        } catch (_) {
+          $('qrCode').innerHTML = '<div class="qr-placeholder">Урок завеликий для QR-коду. Посилання все одно можна скопіювати й надіслати повідомленням.</div>';
+          return false;
+        }
+      }
+
+      async function refreshShareLink() {
+        const base = $('shareBase').value.trim();
+        $('shareLink').value = '';
+        $('copyShareBtn').disabled = true;
+        $('nativeShareBtn').disabled = true;
+        if (!/^https?:\/\/[^\s]+$/i.test(base)) {
+          $('shareStatus').textContent = location.protocol === 'file:'
+            ? 'Файл відкрито локально. Вставте майбутню вебадресу після публікації — локальна адреса на телефонах учнів не працюватиме.'
+            : 'Вкажіть коректну адресу сторінки.';
+          $('shareStatus').classList.add('warning');
+          $('qrCode').innerHTML = '<div class="qr-placeholder">QR-код з’явиться після створення коректного посилання.</div>';
+          return;
+        }
+        $('shareStatus').textContent = 'Створюю компактне посилання…';
+        $('shareStatus').classList.remove('warning');
+        try {
+          const state = lessonState();
+          state.u = $('shareStudentMode').checked;
+          state.e = $('shareAllowEditing').checked;
+          const payload = await encodeLesson(state);
+          const url = `${base.replace(/#.*$/, '')}#lesson=${payload}`;
+          $('shareLink').value = url;
+          $('copyShareBtn').disabled = false;
+          $('nativeShareBtn').disabled = !navigator.share;
+          const hasQR = drawQRCode(url);
+          $('shareStatus').textContent = hasQR
+            ? `Готово · ${url.length} символів. Дані після знака # не надсилаються на сервер.`
+            : `Посилання готове · ${url.length} символів, але не вміщується у QR-код.`;
+          if (modeledText !== $('sourceText').value) {
+            $('shareStatus').textContent += ' Увага: текст змінено після останньої розмітки, тож ручні ролі й переклади в посилання не потраплять. Натисніть «Оновити розмітку» і ще раз відкрийте це вікно.';
+            $('shareStatus').classList.add('warning');
+          }
+        } catch (error) {
+          $('shareStatus').textContent = `Не вдалося створити посилання: ${error.message}`;
+          $('shareStatus').classList.add('warning');
+        }
+      }
+
+      function openShareDialog() {
+        const hosted = /^https?:$/.test(location.protocol);
+        $('shareBase').value = hosted ? location.href.replace(/#.*$/, '') : $('shareBase').value;
+        $('shareBaseRow').classList.toggle('local-file', !hosted);
+        rememberFocus();
+        $('shareModal').classList.add('open');
+        $('shareModal').setAttribute('aria-hidden', 'false');
+        refreshShareLink();
+        setTimeout(() => (hosted ? $('copyShareBtn') : $('shareBase')).focus(), 0);
+      }
+
+      async function copyShareLink() {
+        const link = $('shareLink').value; if (!link) return;
+        try { await navigator.clipboard.writeText(link); }
+        catch (_) { $('shareLink').select(); document.execCommand('copy'); }
+        toast('Посилання скопійовано');
+      }
+
+      async function nativeShareLesson() {
+        if (!navigator.share || !$('shareLink').value) return;
+        try { await navigator.share({ title: $('worksheetTitle').value || 'SoundSteps lesson', text: 'Інтерактивний урок SoundSteps', url: $('shareLink').value }); }
+        catch (error) { if (error.name !== 'AbortError') toast('Не вдалося відкрити меню поширення'); }
+      }
+
+      function downloadHTML() {
+        const clone = document.documentElement.cloneNode(true);
+        clone.querySelector('#sourceText').textContent = $('sourceText').value;
+        clone.querySelector('#worksheetTitle').setAttribute('value', $('worksheetTitle').value);
+        clone.querySelector('#level').querySelectorAll('option').forEach(o => o.toggleAttribute('selected', o.value === $('level').value));
+        clone.querySelector('#questionLanguage').querySelectorAll('option').forEach(o => o.toggleAttribute('selected', o.value === $('questionLanguage').value));
+        ['syllableToggle','questionsToggle','translationToggle','themeToggle'].forEach(id => clone.querySelector(`#${id}`).toggleAttribute('checked', $(id).checked));
+        clone.querySelector('#cardModal').classList.remove('open');
+        clone.querySelector('#cardModal').setAttribute('aria-hidden', 'true');
+        clone.querySelector('#shareModal').classList.remove('open');
+        clone.querySelector('#shareModal').setAttribute('aria-hidden', 'true');
+        clone.querySelector('#savedState').textContent = JSON.stringify(sentences).replace(/<\//g, '<\\/');
+        const serialized = '<!doctype html>\n' + clone.outerHTML;
+        const blob = new Blob([serialized], {type: 'text/html;charset=utf-8'});
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'soundsteps-worksheet.html'; link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 500); toast('HTML збережено');
+      }
+
+      $('renderBtn').addEventListener('click', () => {
+        buildModel(); render(); scheduleDraftSave();
+        if (matchMedia('(max-width: 900px)').matches) setMobileTab('sheet', true);
+        toast('Розмітку оновлено');
+      });
+      $('printBtn').addEventListener('click', () => window.print());
+      $('downloadBtn').addEventListener('click', downloadHTML);
+      $('shareBtn').addEventListener('click', openShareDialog);
+      $('modeBtn').addEventListener('click', () => { if (!sharedLocked) setAppMode(appMode === 'teacher' ? 'student' : 'teacher'); });
+      $('themeBtn').addEventListener('click', () => { setTheme(!$('themeToggle').checked); scheduleDraftSave(); });
+      $('mobileNav').addEventListener('click', event => {
+        const button = event.target.closest('[data-tab]');
+        if (button) setMobileTab(button.dataset.tab, true);
+      });
+      $('closeShareBtn').addEventListener('click', closeShareDialog);
+      $('shareModal').addEventListener('click', event => { if (event.target === $('shareModal')) closeShareDialog(); });
+      $('shareBase').addEventListener('input', () => { clearTimeout(refreshShareLink.timer); refreshShareLink.timer = setTimeout(refreshShareLink, 250); });
+      $('copyShareBtn').addEventListener('click', copyShareLink);
+      $('nativeShareBtn').addEventListener('click', nativeShareLesson);
+      ['shareStudentMode','shareAllowEditing'].forEach(id => $(id).addEventListener('change', refreshShareLink));
+      $('roleGrid').addEventListener('click', e => { const button = e.target.closest('[data-role]'); if (button) assignRole(button.dataset.role); });
+      $('applyTranslation').addEventListener('click', applyTranslation);
+      $('openCardBtn').addEventListener('click', () => { const token = selectedTokens()[0]; if (token) openDictionaryCard(token); });
+      $('closeCardBtn').addEventListener('click', closeDictionaryCard);
+      $('cardModal').addEventListener('click', event => { if (event.target === $('cardModal')) closeDictionaryCard(); });
+      document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeDictionaryCard(); closeShareDialog(); } });
+      document.addEventListener('keydown', trapFocus);
+      $('translationInput').addEventListener('keydown', e => { if (e.key === 'Enter') applyTranslation(); });
+      ['syllableToggle','questionsToggle'].forEach(id => $(id).addEventListener('change', () => { render(); scheduleDraftSave(); }));
+      $('questionLanguage').addEventListener('change', () => { render(); scheduleDraftSave(); });
+      $('translationToggle').addEventListener('change', hideTooltip);
+      $('translationToggle').addEventListener('change', scheduleDraftSave);
+      $('themeToggle').addEventListener('change', () => { setTheme($('themeToggle').checked); scheduleDraftSave(); });
+      $('sourceText').addEventListener('input', scheduleDraftSave);
+      $('worksheetTitle').addEventListener('input', () => { $('outputTitle').textContent = $('worksheetTitle').value || 'Reading practice'; scheduleDraftSave(); });
+      $('level').addEventListener('change', () => { $('outputLevel').textContent = $('level').value; scheduleDraftSave(); });
+
+      async function initialize() {
+        renderLegend();
+        try { setTheme($('themeToggle').checked || localStorage.getItem('soundsteps-theme') === 'dark', false); }
+        catch (_) { setTheme($('themeToggle').checked, false); }
+        let restored = false;
+        try { restored = await restoreSharedLesson(); }
+        catch (error) { toast(`Посилання уроку пошкоджене: ${error.message}`); }
+        if (!restored) {
+          try {
+            const saved = JSON.parse($('savedState').textContent || 'null');
+            if (Array.isArray(saved)) { sentences = saved; modeledText = $('sourceText').value; }
+            else {
+              const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+              if (draft?.v === 1) applyLessonState(draft); else buildModel();
+            }
+          } catch (_) { buildModel(); }
+        }
+        if (!restored) setAppMode('teacher');
+        setMobileTab(appMode === 'student' ? 'sheet' : 'text');
+        render();
+      }
+      initialize();
+    })();
+  </script>
+</body>
+</html>

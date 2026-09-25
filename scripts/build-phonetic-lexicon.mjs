@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Builds the embedded ESL lexicon used by index.html.
+ * Builds data/phonetic-lexicon.json (syllables + stress) and data/pronunciation.json (IPA + spelling hints).
  *
  * Input 1: combined NGSL-GR/NDL/NAWL school lexicon CSV.
  * Input 2: the ESM index from words/cmu-pronouncing-dictionary.
@@ -8,13 +8,15 @@
  * Input 4: LibreOffice-compatible en_US hyphenation patterns (fallback only).
  *
  * Usage:
- *   node scripts/build-phonetic-lexicon.mjs NGSL.csv cmudict-index.js syllables.txt hyph_en_US.dic index.html
+ *   node scripts/build-phonetic-lexicon.mjs NGSL.csv cmudict-index.js syllables.txt hyph_en_US.dic [data-dir]
  */
 import fs from 'node:fs';
+import path from 'node:path';
+import { writeJSONLines } from './lib/json-data.mjs';
 
-const [ngslPath, cmuPath, writtenPath, hyphenPath, htmlPath] = process.argv.slice(2);
-if (![ngslPath, cmuPath, writtenPath, hyphenPath, htmlPath].every(Boolean)) {
-  throw new Error('Expected paths: NGSL.csv cmudict-index.js syllables.txt hyph_en_US.dic index.html');
+const [ngslPath, cmuPath, writtenPath, hyphenPath, dataDir = 'data'] = process.argv.slice(2);
+if (![ngslPath, cmuPath, writtenPath, hyphenPath].every(Boolean)) {
+  throw new Error('Expected paths: NGSL.csv cmudict-index.js syllables.txt hyph_en_US.dic [data-dir]');
 }
 
 const ngslLines = fs.readFileSync(ngslPath, 'utf8').replace(/^\uFEFF/, '').trim().split(/\r?\n/);
@@ -228,15 +230,7 @@ for (const word of words) {
   pronunciations[word] = [manual?.ipa || phonesToIPA(phones), spellingHints(word, parts)];
 }
 
-const rows = Object.entries(entries).map(([word, value]) => `${JSON.stringify(word)}:${JSON.stringify(value)}`);
-const lexicon = `const PHONETIC_LEXICON = {${rows.join(',')}};`;
-const pronunciationData = `const PRONUNCIATION_DATA = ${JSON.stringify(pronunciations)};`;
-const startMarker = '/* PHONETIC_LEXICON_START */';
-const endMarker = '/* PHONETIC_LEXICON_END */';
-const html = fs.readFileSync(htmlPath, 'utf8');
-const start = html.indexOf(startMarker);
-const end = html.indexOf(endMarker);
-if (start < 0 || end < start) throw new Error('Lexicon markers not found in HTML');
-const updated = `${html.slice(0, start + startMarker.length)}\n      ${lexicon}\n      ${pronunciationData}\n      ${html.slice(end)}`;
-fs.writeFileSync(htmlPath, updated);
-console.log(`Embedded ${Object.keys(entries).length} NGSL-GR/CMU entries (${writtenCount} written-dictionary splits, ${words.length - writtenCount} phonetic fallbacks; ${Buffer.byteLength(lexicon)} bytes).`);
+fs.mkdirSync(dataDir, { recursive: true });
+writeJSONLines(path.join(dataDir, 'phonetic-lexicon.json'), entries);
+writeJSONLines(path.join(dataDir, 'pronunciation.json'), pronunciations);
+console.log(`Wrote ${Object.keys(entries).length} NGSL-GR/CMU entries to ${dataDir}/ (${writtenCount} written-dictionary splits, ${words.length - writtenCount} phonetic fallbacks). Run npm run build to refresh index.html.`);

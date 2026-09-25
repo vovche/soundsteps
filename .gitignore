@@ -7,3 +7,6 @@ sources/
 
 node_modules/
 .DS_Store
+
+# Build output (npm run build)
+/index.html
